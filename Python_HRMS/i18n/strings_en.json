@@ -1,0 +1,22 @@
+﻿{
+  "title": "HRMS - HR & Training",
+  "heading": "Human Resources & Training",
+  "sub": "Core: employee master/personal/education, certification setup & records, authority, reports, overdue check. Backend: SQLite.",
+  "section_employee": "Employee",
+  "employee_basic": "Employee Master / Basic",
+  "employee_personal": "Personal Info / Contacts",
+  "employee_education": "Education",
+  "section_certify": "Certification & Training",
+  "certify_items": "Certification Setup",
+  "certify_tool_map": "Cert-Tool Mapping",
+  "certify_record": "Training/Certification Records",
+  "certify_overdue": "Overdue Check",
+  "section_admin": "Administration",
+  "authority": "Authority",
+  "sync_mes": "CSV Export / External Sync",
+  "section_reports": "Reports & Analytics",
+  "report_training": "Training Reports (Dept/Days Filter)",
+  "report_custom": "Custom Query/Export",
+  "footer": "Status: SQLite backend (./data/hrms.db). Configure DB and export paths first.",
+  "lang_label": "Language"
+}

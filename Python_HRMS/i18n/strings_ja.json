@@ -1,0 +1,22 @@
+﻿{
+  "title": "HRMS 人事・訓練管理",
+  "heading": "人事・訓練管理",
+  "sub": "主要機能：社員基本/個人/学歴、認定設定と記録、権限、レポート、期限チェック。バックエンド：SQLite。",
+  "section_employee": "社員情報",
+  "employee_basic": "社員マスタ / 基本情報",
+  "employee_personal": "個人情報 / 連絡先",
+  "employee_education": "学歴",
+  "section_certify": "認定・訓練",
+  "certify_items": "認定設定",
+  "certify_tool_map": "認定-設備対応",
+  "certify_record": "訓練/認定記録",
+  "certify_overdue": "期限チェック",
+  "section_admin": "管理・権限",
+  "authority": "権限管理",
+  "sync_mes": "CSV 出力 / 外部連携",
+  "section_reports": "レポート・分析",
+  "report_training": "訓練レポート（部門/日数フィルタ）",
+  "report_custom": "カスタム検索/出力",
+  "footer": "状態：SQLite バックエンド（./data/hrms.db）。DB と出力先を設定してください。",
+  "lang_label": "言語"
+}

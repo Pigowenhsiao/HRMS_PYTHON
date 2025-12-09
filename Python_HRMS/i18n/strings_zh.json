@@ -1,0 +1,22 @@
+﻿{
+  "title": "HRMS 人資與訓練管理",
+  "heading": "人力資源與訓練管理",
+  "sub": "核心功能：員工主檔、個資、學歷、證照設定/紀錄、權限、報表與到期檢核。後端：SQLite。",
+  "section_employee": "員工資料",
+  "employee_basic": "員工主檔 / 基本資料",
+  "employee_personal": "個人資訊 / 聯絡方式",
+  "employee_education": "學歷 / 畢業資訊",
+  "section_certify": "證照與訓練",
+  "certify_items": "證照設定",
+  "certify_tool_map": "證照-機台對應",
+  "certify_record": "訓練/證照紀錄",
+  "certify_overdue": "到期檢核",
+  "section_admin": "管理與權限",
+  "authority": "權限管理",
+  "sync_mes": "CSV 匯出 / 對外同步",
+  "section_reports": "報表與分析",
+  "report_training": "訓練報表（部門/天數篩選）",
+  "report_custom": "自訂查詢/匯出",
+  "footer": "狀態：後端 SQLite（預設 ./data/hrms.db） | 請先設定資料庫與匯出路徑",
+  "lang_label": "介面語言"
+}

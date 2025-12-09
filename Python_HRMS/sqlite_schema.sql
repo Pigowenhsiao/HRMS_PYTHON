@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS software (
     updated_at  TEXT
 );
 
+-- 權限帳號
 CREATE TABLE IF NOT EXISTS authority (
     s_account   TEXT PRIMARY KEY,
     password    TEXT, -- 可存雜湊，預設 admin 用於開發
