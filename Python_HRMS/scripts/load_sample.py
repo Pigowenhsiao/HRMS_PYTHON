@@ -1,5 +1,6 @@
 ﻿import sqlite3
 import datetime
+import hashlib
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "hrms.db"
@@ -50,13 +51,24 @@ def main():
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     now = datetime.date.today().isoformat()
+    admin_hash = hashlib.md5("admin123".encode()).hexdigest()
 
     # create tables from schema
     schema = (Path(__file__).resolve().parent.parent / "sqlite_schema.sql").read_text(encoding="utf-8")
     cur.executescript(schema)
 
-    cur.execute("INSERT OR IGNORE INTO authority (s_account, password, active, update_date) VALUES ('admin','admin123',1,?)", (now,))
-    cur.execute("INSERT OR IGNORE INTO software (s_ver, active, updated_at) VALUES ('0.1.0',1,?)", (now,))
+    cur.execute(
+        """
+        INSERT OR IGNORE INTO authority
+        (s_account, password_hash, active,
+         perm_basic, perm_personal, perm_education, perm_certify_items, perm_certify_tool,
+         perm_training_record, perm_overdue, perm_authority, perm_export, perm_area, perm_section, perm_job,
+         perm_report_training, perm_custom_export, update_date)
+        VALUES ('admin', ?, 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1, ?)
+        """,
+        (admin_hash, now),
+    )
+    cur.execute("INSERT OR IGNORE INTO software (s_ver, active, updated_at) VALUES ('0.3.0',1,?)", (now,))
 
     cur.executemany("INSERT OR IGNORE INTO l_section (dept_code, dept_desc, active) VALUES (?,?,1)", sample_dept)
     cur.executemany("INSERT OR IGNORE INTO area (area, area_desc, active) VALUES (?,?,1)", sample_area)

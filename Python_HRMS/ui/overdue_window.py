@@ -27,7 +27,7 @@ class OverdueWindow(QDialog):
         filter_row = QHBoxLayout()
         filter_row.addWidget(QLabel(self.t.get("overdue_days_label", "逾期天數大於等於")))
         self.days_input = QLineEdit()
-        self.days_input.setPlaceholderText("天數，例如 660")
+        self.days_input.setPlaceholderText(self.t.get("overdue_days_placeholder", "天數，例如 660"))
         self.days_input.setText("660")
         self.refresh_btn = QPushButton(self.t.get("refresh", "Refresh"))
         self.refresh_btn.clicked.connect(self.load_data)
@@ -37,10 +37,22 @@ class OverdueWindow(QDialog):
         layout.addLayout(filter_row)
 
         self.headers = ["emp_id", "c_name", "certify_id", "certify_name", "certify_date", "overdue_days", "active"]
+        header_labels = [
+            self.t.get("col_emp_id", "emp_id"),
+            self.t.get("col_c_name", "c_name"),
+            self.t.get("col_certify_id", "certify_id"),
+            self.t.get("col_certify_name", "certify_name"),
+            self.t.get("col_certify_date", "certify_date"),
+            self.t.get("col_overdue_days", "overdue_days"),
+            self.t.get("col_active", "active"),
+        ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setHorizontalHeaderLabels(header_labels)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(self.table.horizontalHeader().ResizeToContents)
+        header.setStretchLastSection(True)
+        self.table.verticalHeader().setDefaultSectionSize(24)
         layout.addWidget(self.table)
 
         self.setLayout(layout)

@@ -22,7 +22,7 @@ class TrainingRecordWindow(QDialog):
         self.export_dir = export_dir
         self.basic_dao = basic_dao
         self.certify_dao = certify_dao
-        self.setWindowTitle(self.t.get("training_record_window_title", "訓練 / 證照紀錄"))
+        self.setWindowTitle(self.t.get("certify_record", "訓練/證照紀錄"))
         self.resize(1100, 620)
         self._init_ui()
         self.load_filters()
@@ -46,14 +46,35 @@ class TrainingRecordWindow(QDialog):
         layout.addLayout(filter_row)
 
         # 表格
-        # certify_no 僅內部使用，不顯示在表格與表單
         self.headers = [
-            "certify_no", "emp_id", "c_name", "dept_code", "area",
-            "certify_id", "certify_name", "certify_date", "certify_type", "remark", "active"
+            "certify_no",
+            "emp_id",
+            "c_name",
+            "dept_code",
+            "area",
+            "certify_id",
+            "certify_name",
+            "certify_date",
+            "certify_type",
+            "remark",
+            "active",
+        ]
+        header_labels = [
+            self.t.get("col_certify_no", "certify_no"),
+            self.t.get("col_emp_id", "emp_id"),
+            self.t.get("col_c_name", "c_name"),
+            self.t.get("col_dept_code", "dept_code"),
+            self.t.get("col_area", "area"),
+            self.t.get("col_certify_id", "certify_id"),
+            self.t.get("col_certify_name", "certify_name"),
+            self.t.get("col_certify_date", "certify_date"),
+            self.t.get("col_certify_type", "certify_type"),
+            self.t.get("col_remark", "remark"),
+            self.t.get("col_active", "active"),
         ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
+        self.table.setHorizontalHeaderLabels(header_labels)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(self.table.horizontalHeader().ResizeToContents)
         header.setStretchLastSection(True)
@@ -72,23 +93,23 @@ class TrainingRecordWindow(QDialog):
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
 
-        form_row1.addWidget(QLabel("EMP_ID"))
+        form_row1.addWidget(QLabel(self.t.get("col_emp_id", "EMP_ID")))
         form_row1.addWidget(self.emp_cb)
-        form_row1.addWidget(QLabel("Certify ID"))
+        form_row1.addWidget(QLabel(self.t.get("col_certify_id", "Certify ID")))
         form_row1.addWidget(self.certify_cb)
         layout.addLayout(form_row1)
 
         form_row2 = QHBoxLayout()
-        form_row2.addWidget(QLabel("Date"))
+        form_row2.addWidget(QLabel(self.t.get("col_certify_date", "Date")))
         form_row2.addWidget(self.certify_date)
-        form_row2.addWidget(QLabel("Type"))
+        form_row2.addWidget(QLabel(self.t.get("col_certify_type", "Type")))
         form_row2.addWidget(self.certify_type)
-        form_row2.addWidget(QLabel("Remark"))
+        form_row2.addWidget(QLabel(self.t.get("col_remark", "Remark")))
         form_row2.addWidget(self.remark)
         form_row2.addWidget(self.active)
         layout.addLayout(form_row2)
 
-        # 按鈕
+        # 按鈕列
         btn_row = QHBoxLayout()
         self.create_btn = QPushButton(self.t.get("create", "Create"))
         self.update_btn = QPushButton(self.t.get("update", "Update"))
@@ -102,6 +123,11 @@ class TrainingRecordWindow(QDialog):
         btn_row.addStretch()
         layout.addLayout(btn_row)
 
+        # 狀態提示
+        self.status_label = QLabel("")
+        self.status_label.setAlignment(Qt.AlignRight)
+        layout.addWidget(self.status_label)
+
         self.setLayout(layout)
 
     def load_filters(self):
@@ -110,9 +136,9 @@ class TrainingRecordWindow(QDialog):
         self.emp_cb.clear()
         self.certify_cb.clear()
         for row in self.basic_dao.list_basic(active_only=True):
-            self.emp_cb.addItem(f"{row['emp_id']} {row.get('c_name','')}", row['emp_id'])
+            self.emp_cb.addItem(f"{row['emp_id']} {row.get('c_name', '')}", row["emp_id"])
         for row in self.certify_dao.list_certify_items(active_only=True):
-            self.certify_cb.addItem(f"{row['certify_id']} {row.get('certify_name','')}", row['certify_id'])
+            self.certify_cb.addItem(f"{row['certify_id']} {row.get('certify_name', '')}", row["certify_id"])
         self.emp_cb.blockSignals(False)
         self.certify_cb.blockSignals(False)
 
@@ -124,7 +150,7 @@ class TrainingRecordWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
-        # 隱藏 certify_no 欄
+        # 隱藏流水號欄位
         self.table.setColumnHidden(0, True)
         self.selected_certify_no = None
 
@@ -160,18 +186,44 @@ class TrainingRecordWindow(QDialog):
     def create_record(self):
         data = self._collect_form()
         if not data["emp_id"] or not data["certify_id"]:
-            QMessageBox.warning(self, "Warn", "EMP_ID / Certify ID 必填")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_emp_cert", "EMP_ID / Certify ID required"),
+            )
             return
         try:
-            self.dao.create_training_record(
+            existing = self.dao.find_training_record(
                 emp_id=data["emp_id"],
                 certify_id=data["certify_id"],
                 certify_date=data["certify_date"],
                 certify_type=data["certify_type"],
                 remark=data["remark"],
                 active=data["active"],
-                updater="",
             )
+            if existing and existing.get("certify_no"):
+                self.dao.update_training_record(
+                    certify_no=int(existing["certify_no"]),
+                    emp_id=data["emp_id"],
+                    certify_id=data["certify_id"],
+                    certify_date=data["certify_date"],
+                    certify_type=data["certify_type"],
+                    remark=data["remark"],
+                    active=data["active"],
+                    updater="",
+                )
+                self._show_status(self.t.get("msg_duplicate_record", "資料重複，已改為更新"))
+            else:
+                self.dao.create_training_record(
+                    emp_id=data["emp_id"],
+                    certify_id=data["certify_id"],
+                    certify_date=data["certify_date"],
+                    certify_type=data["certify_type"],
+                    remark=data["remark"],
+                    active=data["active"],
+                    updater="",
+                )
+                self._show_status(self.t.get("msg_create_success", "新增成功"))
             self.load_data()
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
@@ -179,7 +231,7 @@ class TrainingRecordWindow(QDialog):
     def update_record(self):
         data = self._collect_form()
         if not self.selected_certify_no:
-            QMessageBox.warning(self, "Warn", "請先選擇一筆資料")
+            QMessageBox.warning(self, self.t.get("warn", "Warn"), self.t.get("msg_select_row", "Please select a row"))
             return
         try:
             self.dao.update_training_record(
@@ -198,7 +250,7 @@ class TrainingRecordWindow(QDialog):
 
     def delete_record(self):
         if not self.selected_certify_no:
-            QMessageBox.warning(self, "Warn", "請先選擇一筆資料")
+            QMessageBox.warning(self, self.t.get("warn", "Warn"), self.t.get("msg_select_row", "Please select a row"))
             return
         try:
             self.dao.delete_training_record(int(self.selected_certify_no))
@@ -207,5 +259,10 @@ class TrainingRecordWindow(QDialog):
             QMessageBox.critical(self, "Error", str(e))
 
     def export_csv(self):
-        path = self.dao.export_training_records(self.export_dir, "training_export.csv", only_active=self.active_only.isChecked())
+        path = self.dao.export_training_records(
+            self.export_dir, "training_export.csv", only_active=self.active_only.isChecked()
+        )
         QMessageBox.information(self, self.t.get("export_csv", "Export CSV"), f"CSV exported to: {path}")
+
+    def _show_status(self, msg: str):
+        self.status_label.setText(msg)

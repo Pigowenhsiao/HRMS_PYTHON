@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
+    QComboBox,
     QLineEdit,
     QCheckBox,
     QPushButton,
@@ -15,13 +16,15 @@ from PyQt5.QtCore import Qt
 
 
 class CertifyItemsWindow(QDialog):
-    def __init__(self, dao, translations):
+    def __init__(self, dao, translations, basic_dao):
         super().__init__()
         self.dao = dao
         self.t = translations
+        self.basic_dao = basic_dao
         self.setWindowTitle(self.t.get("certify_items_window_title", "證照設定"))
         self.resize(900, 560)
         self._init_ui()
+        self._load_depts()
         self.load_data()
 
     def _init_ui(self):
@@ -40,9 +43,19 @@ class CertifyItemsWindow(QDialog):
 
         # 表格
         self.headers = ["certify_id", "dept", "certify_name", "certify_time", "certify_grade", "certify_type", "remark", "active"]
+        header_labels = [
+            self.t.get("col_certify_id", "certify_id"),
+            self.t.get("col_dept", "dept"),
+            self.t.get("col_certify_name", "certify_name"),
+            self.t.get("col_certify_time", "certify_time"),
+            self.t.get("col_certify_grade", "certify_grade"),
+            self.t.get("col_certify_type", "certify_type"),
+            self.t.get("col_remark", "remark"),
+            self.t.get("col_active", "active"),
+        ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
+        self.table.setHorizontalHeaderLabels(header_labels)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(self.table.horizontalHeader().ResizeToContents)
         header.setStretchLastSection(True)
@@ -53,7 +66,7 @@ class CertifyItemsWindow(QDialog):
         # 表單
         form = QGridLayout()
         self.certify_id = QLineEdit()
-        self.dept = QLineEdit()
+        self.dept = QComboBox()
         self.certify_name = QLineEdit()
         self.certify_time = QLineEdit()
         self.certify_grade = QLineEdit()
@@ -62,7 +75,16 @@ class CertifyItemsWindow(QDialog):
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
 
-        labels = ["Certify ID", "Dept", "Name", "Time", "Grade", "Type", "Remark", "Active"]
+        labels = [
+            self.t.get("col_certify_id", "Certify ID"),
+            self.t.get("col_dept", "Dept"),
+            self.t.get("col_certify_name", "Name"),
+            self.t.get("col_certify_time", "Time"),
+            self.t.get("col_certify_grade", "Grade"),
+            self.t.get("col_certify_type", "Type"),
+            self.t.get("col_remark", "Remark"),
+            self.t.get("col_active", "Active"),
+        ]
         widgets = [
             self.certify_id,
             self.dept,
@@ -91,6 +113,15 @@ class CertifyItemsWindow(QDialog):
 
         self.setLayout(layout)
 
+    def _load_depts(self):
+        self.dept.blockSignals(True)
+        self.dept.clear()
+        self.dept.addItem(self.t.get("filter_all", "ALL"), "")
+        for row in self.basic_dao.list_sections():
+            label = f"{row['dept_code']} {row.get('dept_desc','')}".strip()
+            self.dept.addItem(label, row["dept_code"])
+        self.dept.blockSignals(False)
+
     def load_data(self):
         rows = self.dao.list_certify_items(active_only=self.active_only.isChecked())
         self.table.setRowCount(len(rows))
@@ -107,7 +138,7 @@ class CertifyItemsWindow(QDialog):
         r = items[0].row()
         values = {self.headers[c]: self.table.item(r, c).text() for c in range(len(self.headers))}
         self.certify_id.setText(values.get("certify_id", ""))
-        self.dept.setText(values.get("dept", ""))
+        self._set_combo_if_exists(self.dept, values.get("dept", ""))
         self.certify_name.setText(values.get("certify_name", ""))
         self.certify_time.setText(values.get("certify_time", ""))
         self.certify_grade.setText(values.get("certify_grade", ""))
@@ -115,10 +146,15 @@ class CertifyItemsWindow(QDialog):
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
+    def _set_combo_if_exists(self, combo: QComboBox, value: str):
+        idx = combo.findData(value)
+        if idx >= 0:
+            combo.setCurrentIndex(idx)
+
     def create_item(self):
         data = self._collect_form()
         if not data["certify_id"]:
-            QMessageBox.warning(self, "Warn", "Certify ID 必填")
+            QMessageBox.warning(self, self.t.get("warn", "Warn"), self.t.get("msg_required_certify_id", "Certify ID required"))
             return
         try:
             self.dao.create_certify_item(**data)
@@ -129,7 +165,7 @@ class CertifyItemsWindow(QDialog):
     def update_item(self):
         data = self._collect_form()
         if not data["certify_id"]:
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入 Certify ID")
+            QMessageBox.warning(self, self.t.get("warn", "Warn"), self.t.get("msg_required_certify_id", "Certify ID required"))
             return
         try:
             self.dao.update_certify_item(**data)
@@ -140,7 +176,7 @@ class CertifyItemsWindow(QDialog):
     def _collect_form(self):
         return dict(
             certify_id=self.certify_id.text().strip(),
-            dept=self.dept.text().strip(),
+            dept=self.dept.currentData() or "",
             certify_name=self.certify_name.text().strip(),
             certify_time=self.certify_time.text().strip(),
             certify_grade=self.certify_grade.text().strip(),

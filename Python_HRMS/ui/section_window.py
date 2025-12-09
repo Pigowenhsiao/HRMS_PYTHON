@@ -28,9 +28,14 @@ class SectionWindow(QDialog):
         layout = QVBoxLayout()
 
         self.headers = ["dept_code", "dept_desc", "active"]
+        header_labels = [
+            self.t.get("col_dept_code", "dept_code"),
+            self.t.get("col_dept_desc", "dept_desc"),
+            self.t.get("col_active", "active"),
+        ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
+        self.table.setHorizontalHeaderLabels(header_labels)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
@@ -40,9 +45,9 @@ class SectionWindow(QDialog):
 
         form_row = QHBoxLayout()
         self.dept_code = QLineEdit()
-        self.dept_code.setPlaceholderText("Dept Code")
+        self.dept_code.setPlaceholderText(self.t.get("col_dept_code", "Dept Code"))
         self.dept_desc = QLineEdit()
-        self.dept_desc.setPlaceholderText("Description")
+        self.dept_desc.setPlaceholderText(self.t.get("col_dept_desc", "Description"))
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
         self.create_btn = QPushButton(self.t.get("create", "Create"))
@@ -51,7 +56,16 @@ class SectionWindow(QDialog):
         self.create_btn.clicked.connect(self.create_record)
         self.update_btn.clicked.connect(self.update_record)
         self.delete_btn.clicked.connect(self.delete_record)
-        for w in [QLabel("Dept"), self.dept_code, QLabel("Desc"), self.dept_desc, self.active, self.create_btn, self.update_btn, self.delete_btn]:
+        for w in [
+            QLabel(self.t.get("col_dept_code", "Dept")),
+            self.dept_code,
+            QLabel(self.t.get("col_dept_desc", "Desc")),
+            self.dept_desc,
+            self.active,
+            self.create_btn,
+            self.update_btn,
+            self.delete_btn,
+        ]:
             form_row.addWidget(w)
         form_row.addStretch()
         layout.addLayout(form_row)
@@ -78,7 +92,9 @@ class SectionWindow(QDialog):
 
     def create_record(self):
         if not self.dept_code.text().strip():
-            QMessageBox.warning(self, "Warn", "請輸入部門代碼")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_required_dept", "Dept Code is required")
+            )
             return
         try:
             self.dao.create_section(self.dept_code.text().strip(), self.dept_desc.text().strip(), self.active.isChecked())
@@ -88,7 +104,9 @@ class SectionWindow(QDialog):
 
     def update_record(self):
         if not self.dept_code.text().strip():
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入部門代碼")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_required_dept", "Dept Code is required")
+            )
             return
         try:
             self.dao.update_section(self.dept_code.text().strip(), self.dept_desc.text().strip(), self.active.isChecked())
@@ -98,7 +116,9 @@ class SectionWindow(QDialog):
 
     def delete_record(self):
         if not self.dept_code.text().strip():
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入部門代碼")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_required_dept", "Dept Code is required")
+            )
             return
         try:
             self.dao.delete_section(self.dept_code.text().strip())

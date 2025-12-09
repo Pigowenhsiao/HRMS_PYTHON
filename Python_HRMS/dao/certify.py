@@ -173,6 +173,28 @@ class CertifyDAO:
         sql = "DELETE FROM training_record WHERE certify_no = ?"
         return self.db.execute(sql, (certify_no,))
 
+    def find_training_record(
+        self,
+        emp_id: str,
+        certify_id: str,
+        certify_date: str,
+        certify_type: str,
+        remark: str,
+        active: bool,
+    ) -> Dict[str, Any]:
+        sql = """
+        SELECT certify_no
+        FROM training_record
+        WHERE emp_id = ?
+          AND certify_id = ?
+          AND certify_date = ?
+          AND certify_type = ?
+          AND remark = ?
+          AND active = ?
+        LIMIT 1
+        """
+        return self.db.fetch_one(sql, (emp_id, certify_id, certify_date, certify_type, remark, int(active)))
+
     def export_training_records(self, export_dir: Path, filename: str = None, only_active: bool = True) -> Path:
         export_dir = Path(export_dir)
         export_dir.mkdir(parents=True, exist_ok=True)

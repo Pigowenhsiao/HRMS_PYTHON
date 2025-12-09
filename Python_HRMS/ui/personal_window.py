@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+﻿from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QGridLayout,
 )
+from PyQt5.QtCore import Qt
 
 
 class PersonalWindow(QDialog):
@@ -25,12 +26,15 @@ class PersonalWindow(QDialog):
             self.emp_combo.setCurrentIndex(0)
             self.load_person_info()
 
+    def _label(self, key, default):
+        return self.t.get(key, default)
+
     def _init_ui(self):
         layout = QVBoxLayout()
 
         # EMP selector
         top_row = QHBoxLayout()
-        top_row.addWidget(QLabel("EMP_ID"))
+        top_row.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")))
         self.emp_combo = QComboBox()
         self.emp_combo.currentIndexChanged.connect(self.load_person_info)
         top_row.addWidget(self.emp_combo)
@@ -39,47 +43,44 @@ class PersonalWindow(QDialog):
 
         form = QGridLayout()
 
-        self.sex = QComboBox()
-        self.sex.addItems(["M", "F"])
-        self.birthday = QLineEdit()
-        self.birthday.setPlaceholderText("YYYY-MM-DD")
+        self.sex = QComboBox(); self.sex.addItems(["M", "F"])
+        self.birthday = QLineEdit(); self.birthday.setPlaceholderText("YYYY-MM-DD")
         self.personal_id = QLineEdit()
         self.home_phone = QLineEdit()
         self.current_phone = QLineEdit()
         self.cell_phone = QLineEdit()
         self.living_place = QLineEdit()
         self.living_place2 = QLineEdit()
-        self.emg_name1 = QLineEdit()
-        self.emg_phone1 = QLineEdit()
-        self.emg_rel1 = QLineEdit()
-        self.emg_name2 = QLineEdit()
-        self.emg_phone2 = QLineEdit()
-        self.emg_rel2 = QLineEdit()
-        self.perf_year = QLineEdit()
-        self.excomp_year = QLineEdit()
-        self.ex_compy_type = QLineEdit()
-        self.meno = QLineEdit()
-        self.active = QCheckBox("Active")
-        self.active.setChecked(True)
+        self.emg_name1 = QLineEdit(); self.emg_phone1 = QLineEdit(); self.emg_rel1 = QLineEdit()
+        self.emg_name2 = QLineEdit(); self.emg_phone2 = QLineEdit(); self.emg_rel2 = QLineEdit()
+        self.perf_year = QLineEdit(); self.excomp_year = QLineEdit(); self.ex_compy_type = QLineEdit()
+        self.meno = QLineEdit(); self.active = QCheckBox(self._label("col_active", "Active")); self.active.setChecked(True)
 
         labels = [
-            "Sex", "Birthday", "Personal ID", "Home Phone", "Current Phone", "Cell Phone",
-            "Living Place", "Living Place2",
-            "EMG Name1", "EMG Phone1", "EMG Relation1",
-            "EMG Name2", "EMG Phone2", "EMG Relation2",
-            "Perf Year", "Excomp Year", "Ex Company Type", "Meno", "Active"
-        ]
-        widgets = [
-            self.sex, self.birthday, self.personal_id, self.home_phone, self.current_phone, self.cell_phone,
-            self.living_place, self.living_place2,
-            self.emg_name1, self.emg_phone1, self.emg_rel1,
-            self.emg_name2, self.emg_phone2, self.emg_rel2,
-            self.perf_year, self.excomp_year, self.ex_compy_type, self.meno, self.active
+            ("col_sex", self.sex),
+            ("col_birthday", self.birthday),
+            ("col_personal_id", self.personal_id),
+            ("col_home_phone", self.home_phone),
+            ("col_current_phone", self.current_phone),
+            ("col_cell_phone", self.cell_phone),
+            ("col_living_place", self.living_place),
+            ("col_living_place2", self.living_place2),
+            ("col_emg_name1", self.emg_name1),
+            ("col_emg_phone1", self.emg_phone1),
+            ("col_emg_rel1", self.emg_rel1),
+            ("col_emg_name2", self.emg_name2),
+            ("col_emg_phone2", self.emg_phone2),
+            ("col_emg_rel2", self.emg_rel2),
+            ("col_perf_year", self.perf_year),
+            ("col_excomp_year", self.excomp_year),
+            ("col_ex_compy_type", self.ex_compy_type),
+            ("col_meno", self.meno),
+            ("col_active", self.active),
         ]
 
-        for i, (lab, wid) in enumerate(zip(labels, widgets)):
-            form.addWidget(QLabel(lab), i, 0)
-            form.addWidget(wid, i, 1)
+        for i, (key, widget) in enumerate(labels):
+            form.addWidget(QLabel(self._label(key, key)), i, 0)
+            form.addWidget(widget, i, 1)
 
         layout.addLayout(form)
 
@@ -105,7 +106,6 @@ class PersonalWindow(QDialog):
             return
         self.dao.ensure_person_info(emp_id)
         data = self.dao.get_person_info(emp_id)
-        # set fields with defaults
         self.sex.setCurrentIndex(0 if data.get("sex", "M") != "F" else 1)
         self.birthday.setText(data.get("birthday", ""))
         self.personal_id.setText(data.get("personal_id", ""))
@@ -129,7 +129,7 @@ class PersonalWindow(QDialog):
     def save_info(self):
         emp_id = self.emp_combo.currentData()
         if not emp_id:
-            QMessageBox.warning(self, "Warn", "請先選擇 EMP_ID")
+            QMessageBox.warning(self, "Warn", self._label("col_emp_id", "EMP_ID") + " 必填")
             return
         try:
             self.dao.update_person_info(
@@ -155,6 +155,6 @@ class PersonalWindow(QDialog):
                 active=self.active.isChecked(),
                 updater="",
             )
-            QMessageBox.information(self, "OK", "已儲存")
+            QMessageBox.information(self, "OK", self.t.get("update", "Update") + " 完成")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))

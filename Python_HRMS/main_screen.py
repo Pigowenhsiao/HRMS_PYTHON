@@ -1,5 +1,6 @@
 ﻿import json
 from pathlib import Path
+import sys
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QApplication,
@@ -64,8 +65,11 @@ class MainScreen(QMainWindow):
         super().__init__()
         self.config = load_config()
         self.current_lang = self.config.get("default_lang", "ja")
+        self.app_version = self.config.get("version", "0.1.0")
         self.translations = load_i18n(self.current_lang)
         self.base_font_size = 13
+        self.perms = {}
+        self.current_user = None
 
         self.setWindowTitle(self.translations["title"])
         self.setGeometry(120, 120, 1024, 768)
@@ -87,6 +91,8 @@ class MainScreen(QMainWindow):
         self.report_dao = ReportDAO(self.db)
         self.export_dir = export_path
         self._init_ui()
+        if not self._login_and_apply_permissions():
+            sys.exit(0)
 
     def _init_ui(self):
         self.buttons = {}
@@ -100,6 +106,9 @@ class MainScreen(QMainWindow):
         self.lang_label = QLabel(self.translations["lang_label"])
         self.lang_select = QComboBox()
         self.lang_select.addItems(["繁中", "English", "日本語"])
+        # 預設以設定語言決定下拉選中：日文->2，繁中->0，英文->1
+        default_idx = 2 if self.current_lang == "ja" else (0 if self.current_lang == "zh" else 1)
+        self.lang_select.setCurrentIndex(default_idx)
         self.lang_select.currentIndexChanged.connect(self._on_lang_change)
         self.font_inc = QPushButton("+A")
         self.font_dec = QPushButton("-A")
@@ -107,10 +116,14 @@ class MainScreen(QMainWindow):
         self.font_dec.setFixedWidth(40)
         self.font_inc.clicked.connect(self.increase_font)
         self.font_dec.clicked.connect(self.decrease_font)
+        self.full_btn = QPushButton(self.translations.get("btn_fullscreen", "Full Screen"))
+        self.full_btn.setFixedWidth(110)
+        self.full_btn.clicked.connect(self.toggle_full_screen)
         lang_row.addWidget(self.lang_label)
         lang_row.addWidget(self.lang_select)
         lang_row.addWidget(self.font_inc)
         lang_row.addWidget(self.font_dec)
+        lang_row.addWidget(self.full_btn)
         lang_row.addStretch()
 
         self.title_label = QLabel(self.translations["heading"])
@@ -137,10 +150,26 @@ class MainScreen(QMainWindow):
         self.setCentralWidget(root)
 
         self.status = QStatusBar()
+        self.status_label = QLabel()
+        self.status_user_label = QLabel()
+        self.status.addWidget(self.status_label, 1)
+        self.status.addPermanentWidget(self.status_user_label, 0)
         self.setStatusBar(self.status)
-        self.status.showMessage('Ready')
+        self._update_status_labels()
 
         self._apply_font_sizes()
+
+    def _login_and_apply_permissions(self):
+        from ui.login_dialog import LoginDialog
+        dlg = LoginDialog(self.authority_dao, self.translations)
+        if dlg.exec_() != dlg.Accepted:
+            return False
+        self.current_user = dlg.account
+        self.perms = dlg.perms
+        self._update_status_labels()
+        # 依權限隱藏按鈕
+        self._apply_permissions()
+        return True
 
     def _section_employee(self):
         self.box_employee = QGroupBox(self.translations["section_employee"])
@@ -247,11 +276,22 @@ class MainScreen(QMainWindow):
             self.buttons['btn_area'].setText(t.get("btn_area", "區域維護"))
             self.buttons['btn_section'].setText(t.get("btn_section", "部門維護"))
             self.buttons['btn_job'].setText(t.get("btn_job", "職務/Function"))
+        if hasattr(self, "full_btn"):
+            self.full_btn.setText(t.get("btn_fullscreen", "全螢幕"))
+        self._update_status_labels()
         self._apply_font_sizes()
+
+    def _update_status_labels(self):
+        ready = self.translations.get("status_ready", "Ready")
+        tpl = self.translations.get("status_user_version", "User: {user} | Version: {version}")
+        user = self.current_user or "-"
+        version = self.app_version
+        self.status_label.setText(ready)
+        self.status_user_label.setText(tpl.format(user=user, version=version))
 
     # --- actions ---
     def open_certify_items(self):
-        dlg = CertifyItemsWindow(self.certify_dao, self.translations)
+        dlg = CertifyItemsWindow(self.certify_dao, self.translations, self.basic_dao)
         dlg.exec_()
 
     def open_certify_tool_map(self):
@@ -354,6 +394,13 @@ class MainScreen(QMainWindow):
             btn.setFont(button_font)
         self.footer.setFont(footer_font)
         self.status.setFont(status_font)
+        self.status_label.setFont(status_font)
+        self.status_user_label.setFont(status_font)
+        self.status_label.setFont(status_font)
+        self.status_user_label.setFont(status_font)
+
+        # 依權限隱藏/顯示
+        self._apply_permissions()
 
     def increase_font(self):
         if self.base_font_size < 22:
@@ -364,6 +411,35 @@ class MainScreen(QMainWindow):
         if self.base_font_size > 11:
             self.base_font_size -= 1
             self._apply_font_sizes()
+
+    def toggle_full_screen(self):
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+
+    def _apply_permissions(self):
+        if not hasattr(self, "perms"):
+            return
+        perm_map = {
+            'employee_basic': 'perm_basic',
+            'employee_personal': 'perm_personal',
+            'employee_education': 'perm_education',
+            'certify_items': 'perm_certify_items',
+            'certify_tool_map': 'perm_certify_tool',
+            'certify_record': 'perm_training_record',
+            'certify_overdue': 'perm_overdue',
+            'authority': 'perm_authority',
+            'sync_mes': 'perm_export',
+            'btn_area': 'perm_area',
+            'btn_section': 'perm_section',
+            'btn_job': 'perm_job',
+            'report_training': 'perm_report_training',
+            'report_custom': 'perm_custom_export',
+        }
+        for btn_key, perm_key in perm_map.items():
+            if btn_key in self.buttons:
+                self.buttons[btn_key].setVisible(bool(self.perms.get(perm_key, False)))
 
 
 if __name__ == '__main__':

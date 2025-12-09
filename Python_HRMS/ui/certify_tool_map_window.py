@@ -18,7 +18,7 @@ class CertifyToolMapWindow(QDialog):
         super().__init__()
         self.dao = dao
         self.t = translations
-        self.setWindowTitle(self.t.get("certify_tool_map_window_title", "證照-機台對應"))
+        self.setWindowTitle(self.t.get("certify_tool_map", "證照-機台對應"))
         self.resize(860, 540)
         self._init_ui()
         self.load_data()
@@ -26,25 +26,38 @@ class CertifyToolMapWindow(QDialog):
     def _init_ui(self):
         layout = QVBoxLayout()
 
+        # 篩選列
         filter_row = QHBoxLayout()
         self.certify_filter = QLineEdit()
-        self.certify_filter.setPlaceholderText("Certify ID")
+        self.certify_filter.setPlaceholderText(self.t.get("col_certify_id", "Certify ID"))
         self.tool_filter = QLineEdit()
-        self.tool_filter.setPlaceholderText("Tool ID")
+        self.tool_filter.setPlaceholderText(self.t.get("col_tool_id", "Tool ID"))
         self.active_only = QCheckBox(self.t.get("only_active", "Only Active"))
         self.active_only.setChecked(True)
         self.refresh_btn = QPushButton(self.t.get("refresh", "Refresh"))
         self.refresh_btn.clicked.connect(self.load_data)
 
-        for w in [QLabel("Certify"), self.certify_filter, QLabel("Tool"), self.tool_filter, self.active_only, self.refresh_btn]:
-            filter_row.addWidget(w)
+        filter_row.addWidget(QLabel(self.t.get("col_certify_id", "Certify ID")))
+        filter_row.addWidget(self.certify_filter)
+        filter_row.addWidget(QLabel(self.t.get("col_tool_id", "Tool ID")))
+        filter_row.addWidget(self.tool_filter)
+        filter_row.addWidget(self.active_only)
+        filter_row.addWidget(self.refresh_btn)
         filter_row.addStretch()
         layout.addLayout(filter_row)
 
+        # 表格
         self.headers = ["certify_id", "certify_name", "tool_id", "remark", "active"]
+        header_labels = [
+            self.t.get("col_certify_id", "certify_id"),
+            self.t.get("col_certify_name", "certify_name"),
+            self.t.get("col_tool_id", "tool_id"),
+            self.t.get("col_remark", "remark"),
+            self.t.get("col_active", "active"),
+        ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
+        self.table.setHorizontalHeaderLabels(header_labels)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(self.table.horizontalHeader().ResizeToContents)
         header.setStretchLastSection(True)
@@ -52,12 +65,13 @@ class CertifyToolMapWindow(QDialog):
         self.table.itemSelectionChanged.connect(self.on_row_selected)
         layout.addWidget(self.table)
 
+        # 表單
         form_row1 = QHBoxLayout()
         self.certify_id = QLineEdit()
         self.tool_id = QLineEdit()
-        form_row1.addWidget(QLabel("Certify ID"))
+        form_row1.addWidget(QLabel(self.t.get("col_certify_id", "Certify ID")))
         form_row1.addWidget(self.certify_id)
-        form_row1.addWidget(QLabel("Tool ID"))
+        form_row1.addWidget(QLabel(self.t.get("col_tool_id", "Tool ID")))
         form_row1.addWidget(self.tool_id)
         layout.addLayout(form_row1)
 
@@ -65,7 +79,7 @@ class CertifyToolMapWindow(QDialog):
         self.remark = QLineEdit()
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
-        form_row2.addWidget(QLabel("Remark"))
+        form_row2.addWidget(QLabel(self.t.get("col_remark", "Remark")))
         form_row2.addWidget(self.remark)
         form_row2.addWidget(self.active)
         form_row2.addStretch()
@@ -110,10 +124,22 @@ class CertifyToolMapWindow(QDialog):
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
+    def _collect_form(self):
+        return dict(
+            certify_id=self.certify_id.text().strip(),
+            tool_id=self.tool_id.text().strip(),
+            remark=self.remark.text().strip(),
+            active=self.active.isChecked(),
+        )
+
     def create_mapping(self):
         data = self._collect_form()
         if not data["certify_id"] or not data["tool_id"]:
-            QMessageBox.warning(self, "Warn", "Certify ID / Tool ID 必填")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_cert_tool", "Certify ID / Tool ID required"),
+            )
             return
         try:
             self.dao.create_tool_map(**data)
@@ -124,7 +150,11 @@ class CertifyToolMapWindow(QDialog):
     def update_mapping(self):
         data = self._collect_form()
         if not data["certify_id"] or not data["tool_id"]:
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入 Certify ID / Tool ID")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_cert_tool", "Certify ID / Tool ID required"),
+            )
             return
         try:
             self.dao.update_tool_map(**data)
@@ -136,18 +166,14 @@ class CertifyToolMapWindow(QDialog):
         cid = self.certify_id.text().strip()
         tid = self.tool_id.text().strip()
         if not cid or not tid:
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入 Certify ID / Tool ID")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_cert_tool", "Certify ID / Tool ID required"),
+            )
             return
         try:
             self.dao.delete_tool_map(cid, tid)
             self.load_data()
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
-
-    def _collect_form(self):
-        return dict(
-            certify_id=self.certify_id.text().strip(),
-            tool_id=self.tool_id.text().strip(),
-            remark=self.remark.text().strip(),
-            active=self.active.isChecked(),
-        )

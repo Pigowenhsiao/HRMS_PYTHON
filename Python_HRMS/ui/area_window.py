@@ -28,9 +28,14 @@ class AreaWindow(QDialog):
         layout = QVBoxLayout()
 
         self.headers = ["area", "area_desc", "active"]
+        header_labels = [
+            self.t.get("col_area", "area"),
+            self.t.get("col_area_desc", "area_desc"),
+            self.t.get("col_active", "active"),
+        ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
+        self.table.setHorizontalHeaderLabels(header_labels)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
@@ -40,9 +45,9 @@ class AreaWindow(QDialog):
 
         form_row = QHBoxLayout()
         self.area = QLineEdit()
-        self.area.setPlaceholderText("Area")
+        self.area.setPlaceholderText(self.t.get("col_area", "Area"))
         self.area_desc = QLineEdit()
-        self.area_desc.setPlaceholderText("Description")
+        self.area_desc.setPlaceholderText(self.t.get("col_area_desc", "Description"))
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
         self.create_btn = QPushButton(self.t.get("create", "Create"))
@@ -51,7 +56,16 @@ class AreaWindow(QDialog):
         self.create_btn.clicked.connect(self.create_record)
         self.update_btn.clicked.connect(self.update_record)
         self.delete_btn.clicked.connect(self.delete_record)
-        for w in [QLabel("Area"), self.area, QLabel("Desc"), self.area_desc, self.active, self.create_btn, self.update_btn, self.delete_btn]:
+        for w in [
+            QLabel(self.t.get("col_area", "Area")),
+            self.area,
+            QLabel(self.t.get("col_area_desc", "Desc")),
+            self.area_desc,
+            self.active,
+            self.create_btn,
+            self.update_btn,
+            self.delete_btn,
+        ]:
             form_row.addWidget(w)
         form_row.addStretch()
         layout.addLayout(form_row)
@@ -78,7 +92,9 @@ class AreaWindow(QDialog):
 
     def create_record(self):
         if not self.area.text().strip():
-            QMessageBox.warning(self, "Warn", "請輸入區域代碼")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_required_area", "Area is required")
+            )
             return
         try:
             self.dao.create_area(self.area.text().strip(), self.area_desc.text().strip(), self.active.isChecked())
@@ -88,7 +104,9 @@ class AreaWindow(QDialog):
 
     def update_record(self):
         if not self.area.text().strip():
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入區域代碼")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_required_area", "Area is required")
+            )
             return
         try:
             self.dao.update_area(self.area.text().strip(), self.area_desc.text().strip(), self.active.isChecked())
@@ -98,7 +116,9 @@ class AreaWindow(QDialog):
 
     def delete_record(self):
         if not self.area.text().strip():
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入區域代碼")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_required_area", "Area is required")
+            )
             return
         try:
             self.dao.delete_area(self.area.text().strip())

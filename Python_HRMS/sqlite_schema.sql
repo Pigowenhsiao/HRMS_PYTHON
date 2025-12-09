@@ -10,12 +10,26 @@ CREATE TABLE IF NOT EXISTS software (
 -- 權限帳號
 CREATE TABLE IF NOT EXISTS authority (
     s_account   TEXT PRIMARY KEY,
-    password    TEXT, -- 可存雜湊，預設 admin 用於開發
+    password_hash TEXT,
     active      INTEGER DEFAULT 1,
+    perm_basic  INTEGER DEFAULT 1,
+    perm_personal INTEGER DEFAULT 1,
+    perm_education INTEGER DEFAULT 1,
+    perm_certify_items INTEGER DEFAULT 1,
+    perm_certify_tool INTEGER DEFAULT 1,
+    perm_training_record INTEGER DEFAULT 1,
+    perm_overdue INTEGER DEFAULT 1,
+    perm_authority INTEGER DEFAULT 1,
+    perm_export INTEGER DEFAULT 1,
+    perm_area INTEGER DEFAULT 1,
+    perm_section INTEGER DEFAULT 1,
+    perm_job INTEGER DEFAULT 1,
+    perm_report_training INTEGER DEFAULT 1,
+    perm_custom_export INTEGER DEFAULT 1,
     update_date TEXT
 );
-INSERT OR IGNORE INTO authority (s_account, password, active, update_date)
-VALUES ('admin', 'admin123', 1, date('now'));
+INSERT OR IGNORE INTO authority (s_account, password_hash, active, perm_basic, perm_personal, perm_education, perm_certify_items, perm_certify_tool, perm_training_record, perm_overdue, perm_authority, perm_export, perm_area, perm_section, perm_job, perm_report_training, perm_custom_export, update_date)
+VALUES ('admin', '0192023a7bbd73250516f069df18b500', 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1, date('now'));
 
 -- 區域/部門/職務字典
 CREATE TABLE IF NOT EXISTS area (
