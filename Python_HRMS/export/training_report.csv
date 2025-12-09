@@ -1,0 +1,3 @@
+﻿emp_id,c_name,dept_desc,certify_id,certify_name,certify_date,overdue_days,active
+000001,王小明,製造部,C001,安全訓練,2024-02-01,677,1
+000002,林小華,品保部,C002,機台操作,2024-03-01,648,1

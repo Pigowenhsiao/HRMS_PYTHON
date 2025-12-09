@@ -1,0 +1,3 @@
+﻿certify_no,emp_id,c_name,dept_code,area,certify_id,certify_name,certify_date,certify_type,remark,active
+2,000002,林小華,D002,A2,C002,機台操作,2024-03-01,TYPE2,樣本,1
+1,000001,王小明,D001,A1,C001,安全訓練,2024-02-01,TYPE1,樣本,1
