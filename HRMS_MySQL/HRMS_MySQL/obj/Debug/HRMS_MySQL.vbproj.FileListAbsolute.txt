@@ -1,0 +1,56 @@
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\bin\Debug\HRMS_MySQL.exe
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\bin\Debug\HRMS_MySQL.pdb
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\bin\Debug\HRMS_MySQL.xml
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\bin\Debug\Microsoft.Office.Interop.Excel.dll
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\bin\Debug\Microsoft.Vbe.Interop.dll
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\bin\Debug\office.dll
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\HRMS.Form1.resources
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\HRMS.Resources.resources
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\HRMS_MySQL.vbproj.GenerateResource.Cache
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\HRMS_MySQL.exe
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\HRMS_MySQL.xml
+C:\Users\cwhsiaoh\AppData\Local\Temporary Projects\WindowsApplication1\obj\Debug\HRMS_MySQL.pdb
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.xml
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.pdb
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\bin\Debug\HRMS_MySQL.exe
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\bin\Debug\HRMS_MySQL.pdb
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\bin\Debug\HRMS_MySQL.xml
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\bin\Debug\Microsoft.Office.Interop.Excel.dll
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\bin\Debug\office.dll
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\bin\Debug\Microsoft.Vbe.Interop.dll
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\ResolveAssemblyReference.cache
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.Form1.resources
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.Resources.resources
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.vbproj.GenerateResource.Cache
+D:\HRMS\Line_Yield_By_Prod\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.exe
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.exe
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.xml
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.pdb
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\ResolveAssemblyReference.cache
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.Resources.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS_MySQL.vbproj.GenerateResource.Cache
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\bin\Debug\HRMS_MySQL.exe
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\bin\Debug\HRMS_MySQL.pdb
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\bin\Debug\HRMS_MySQL.xml
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\bin\Debug\Microsoft.Office.Interop.Excel.dll
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\bin\Debug\office.dll
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\bin\Debug\Microsoft.Vbe.Interop.dll
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.TE_Start_Page.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.TE_Tool_desc.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.TE_Area_desc.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.TE_Loc_Desc.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.TE_Section_Desc.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.RPT_42Shift.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.RPT_Person_certify.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.RPT_PERSON_TEL_QUERY.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.RPT_Seniority.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.RPT_Shift_Indices.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.CF_Certify__EXAM.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.CF_Certify_Del.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.CF_Certify_Record.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.CF_Certify_Tool_Map.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.CF_Check_OverDue.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.CF_Report.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.Authority_Control.resources
+D:\HRMS\HRMS_MySQL\HRMS_MySQL\obj\Debug\HRMS.TE_BASIC.resources
