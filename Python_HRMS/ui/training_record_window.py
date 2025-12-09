@@ -54,7 +54,10 @@ class TrainingRecordWindow(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
         self.table.setHorizontalHeaderLabels(self.headers)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(self.table.horizontalHeader().ResizeToContents)
+        header.setStretchLastSection(True)
+        self.table.verticalHeader().setDefaultSectionSize(26)
         self.table.itemSelectionChanged.connect(self.on_row_selected)
         layout.addWidget(self.table)
 

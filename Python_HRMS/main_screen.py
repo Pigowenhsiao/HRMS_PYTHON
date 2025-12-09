@@ -22,6 +22,9 @@ from dao.education import EducationDAO
 from dao.overdue import OverdueDAO
 from dao.authority import AuthorityDAO
 from dao.report import ReportDAO
+from ui.area_window import AreaWindow
+from ui.section_window import SectionWindow
+from ui.job_window import JobWindow
 from ui.certify_items_window import CertifyItemsWindow
 from ui.certify_tool_map_window import CertifyToolMapWindow
 from ui.training_record_window import TrainingRecordWindow
@@ -181,10 +184,19 @@ class MainScreen(QMainWindow):
         layout.setSpacing(10)
         self.buttons['authority'] = QPushButton(self.translations["authority"])
         self.buttons['sync_mes'] = QPushButton(self.translations["sync_mes"])
+        self.buttons['btn_area'] = QPushButton(self.translations.get("btn_area", "區域維護"))
+        self.buttons['btn_section'] = QPushButton(self.translations.get("btn_section", "部門維護"))
+        self.buttons['btn_job'] = QPushButton(self.translations.get("btn_job", "職務/Function"))
         self.buttons['sync_mes'].clicked.connect(self.export_training_csv)
         self.buttons['authority'].clicked.connect(self.open_authority_window)
+        self.buttons['btn_area'].clicked.connect(self.open_area_window)
+        self.buttons['btn_section'].clicked.connect(self.open_section_window)
+        self.buttons['btn_job'].clicked.connect(self.open_job_window)
         for key in ['authority', 'sync_mes']:
             self.buttons[key].setMinimumHeight(38)
+            layout.addWidget(self.buttons[key])
+        for key in ['btn_area', 'btn_section', 'btn_job']:
+            self.buttons[key].setMinimumHeight(36)
             layout.addWidget(self.buttons[key])
         self.box_admin.setLayout(layout)
         return self.box_admin
@@ -231,6 +243,10 @@ class MainScreen(QMainWindow):
         self.buttons['sync_mes'].setText(t["sync_mes"])
         self.buttons['report_training'].setText(t["report_training"])
         self.buttons['report_custom'].setText(t["report_custom"])
+        if 'btn_area' in self.buttons:
+            self.buttons['btn_area'].setText(t.get("btn_area", "區域維護"))
+            self.buttons['btn_section'].setText(t.get("btn_section", "部門維護"))
+            self.buttons['btn_job'].setText(t.get("btn_job", "職務/Function"))
         self._apply_font_sizes()
 
     # --- actions ---
@@ -277,6 +293,18 @@ class MainScreen(QMainWindow):
 
     def open_custom_export(self):
         dlg = CustomExportWindow(self.report_dao, self.translations, self.export_dir)
+        dlg.exec_()
+
+    def open_area_window(self):
+        dlg = AreaWindow(self.basic_dao, self.translations)
+        dlg.exec_()
+
+    def open_section_window(self):
+        dlg = SectionWindow(self.basic_dao, self.translations)
+        dlg.exec_()
+
+    def open_job_window(self):
+        dlg = JobWindow(self.basic_dao, self.translations)
         dlg.exec_()
 
     # --- font size control ---

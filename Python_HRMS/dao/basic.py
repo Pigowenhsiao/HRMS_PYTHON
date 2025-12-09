@@ -19,6 +19,57 @@ class BasicDAO:
         sql = "SELECT l_job, l_job_desc FROM l_job WHERE active = 1 ORDER BY l_job"
         return self.db.fetch_all(sql)
 
+    # --- Section (Dept) CRUD ---
+    def list_all_sections(self) -> List[Dict[str, Any]]:
+        sql = "SELECT dept_code, dept_desc, active FROM l_section ORDER BY dept_code"
+        return self.db.fetch_all(sql)
+
+    def create_section(self, dept_code: str, dept_desc: str, active: bool) -> int:
+        sql = "INSERT OR REPLACE INTO l_section (dept_code, dept_desc, active) VALUES (?, ?, ?)"
+        return self.db.execute(sql, (dept_code, dept_desc, int(active)))
+
+    def update_section(self, dept_code: str, dept_desc: str, active: bool) -> int:
+        sql = "UPDATE l_section SET dept_desc = ?, active = ? WHERE dept_code = ?"
+        return self.db.execute(sql, (dept_desc, int(active), dept_code))
+
+    def delete_section(self, dept_code: str) -> int:
+        sql = "DELETE FROM l_section WHERE dept_code = ?"
+        return self.db.execute(sql, (dept_code,))
+
+    # --- Area CRUD ---
+    def list_all_areas(self) -> List[Dict[str, Any]]:
+        sql = "SELECT area, area_desc, active FROM area ORDER BY area"
+        return self.db.fetch_all(sql)
+
+    def create_area(self, area: str, area_desc: str, active: bool) -> int:
+        sql = "INSERT OR REPLACE INTO area (area, area_desc, active) VALUES (?, ?, ?)"
+        return self.db.execute(sql, (area, area_desc, int(active)))
+
+    def update_area(self, area: str, area_desc: str, active: bool) -> int:
+        sql = "UPDATE area SET area_desc = ?, active = ? WHERE area = ?"
+        return self.db.execute(sql, (area_desc, int(active), area))
+
+    def delete_area(self, area: str) -> int:
+        sql = "DELETE FROM area WHERE area = ?"
+        return self.db.execute(sql, (area,))
+
+    # --- Job/Function CRUD ---
+    def list_all_jobs(self) -> List[Dict[str, Any]]:
+        sql = "SELECT l_job, l_job_desc, active FROM l_job ORDER BY l_job"
+        return self.db.fetch_all(sql)
+
+    def create_job(self, l_job: str, l_job_desc: str, active: bool) -> int:
+        sql = "INSERT OR REPLACE INTO l_job (l_job, l_job_desc, active) VALUES (?, ?, ?)"
+        return self.db.execute(sql, (l_job, l_job_desc, int(active)))
+
+    def update_job(self, l_job: str, l_job_desc: str, active: bool) -> int:
+        sql = "UPDATE l_job SET l_job_desc = ?, active = ? WHERE l_job = ?"
+        return self.db.execute(sql, (l_job_desc, int(active), l_job))
+
+    def delete_job(self, l_job: str) -> int:
+        sql = "DELETE FROM l_job WHERE l_job = ?"
+        return self.db.execute(sql, (l_job,))
+
     def list_basic(
         self,
         active_only: bool = True,
