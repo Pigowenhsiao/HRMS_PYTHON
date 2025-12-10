@@ -39,7 +39,7 @@ class OverdueWindow(QDialog):
         self.headers = ["emp_id", "c_name", "certify_id", "certify_name", "certify_date", "overdue_days", "active"]
         header_labels = [
             self.t.get("col_emp_id", "emp_id"),
-            self.t.get("col_c_name", "c_name"),
+            self.t.get("col_c_name", "name"),
             self.t.get("col_certify_id", "certify_id"),
             self.t.get("col_certify_name", "certify_name"),
             self.t.get("col_certify_date", "certify_date"),
