@@ -14,6 +14,7 @@
     QHeaderView,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class BasicWindow(QDialog):
@@ -23,6 +24,7 @@ class BasicWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("basic_window_title", "員工主檔 / 基本資料"))
         self.resize(1000, 650)
+        set_default_window_state(self)
         self._init_ui()
         self.load_filters()
         self.load_data()

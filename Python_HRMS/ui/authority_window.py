@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class AuthorityWindow(QDialog):
@@ -20,6 +21,7 @@ class AuthorityWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("authority_window_title", "權限管理"))
         self.resize(980, 520)
+        set_default_window_state(self)
         self._init_ui()
         self.load_data()
 

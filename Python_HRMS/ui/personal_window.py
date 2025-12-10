@@ -11,6 +11,7 @@
     QGridLayout,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class PersonalWindow(QDialog):
@@ -20,6 +21,7 @@ class PersonalWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("personal_window_title", "個人資訊 / 聯絡方式"))
         self.resize(820, 520)
+        set_default_window_state(self)
         self._init_ui()
         self.load_emp_ids()
         if self.emp_combo.count() > 0:

@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class OverdueWindow(QDialog):
@@ -18,6 +19,7 @@ class OverdueWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("overdue_window_title", "到期檢核"))
         self.resize(900, 520)
+        set_default_window_state(self)
         self._init_ui()
         self.load_data()
 

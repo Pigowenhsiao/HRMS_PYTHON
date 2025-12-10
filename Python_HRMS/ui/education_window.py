@@ -3,6 +3,7 @@
     QTableWidget, QTableWidgetItem, QLineEdit, QMessageBox, QHeaderView
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class EducationWindow(QDialog):
@@ -12,6 +13,7 @@ class EducationWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("education_window_title", "學歷 / 畢業資訊"))
         self.resize(900, 560)
+        set_default_window_state(self)
         self._init_ui()
         self.load_filters()
         self.load_data()

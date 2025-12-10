@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class CustomExportWindow(QDialog):
@@ -21,6 +22,7 @@ class CustomExportWindow(QDialog):
         self.export_dir = export_dir
         self.setWindowTitle(self.t.get("custom_export_window_title", "自訂查詢 / 匯出"))
         self.resize(900, 560)
+        set_default_window_state(self)
         self._init_ui()
         self.load_data()
 

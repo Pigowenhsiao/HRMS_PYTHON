@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QGridLayout,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class CertifyItemsWindow(QDialog):
@@ -23,6 +24,7 @@ class CertifyItemsWindow(QDialog):
         self.basic_dao = basic_dao
         self.setWindowTitle(self.t.get("certify_items_window_title", "證照設定"))
         self.resize(900, 560)
+        set_default_window_state(self)
         self._init_ui()
         self._load_depts()
         self.load_data()

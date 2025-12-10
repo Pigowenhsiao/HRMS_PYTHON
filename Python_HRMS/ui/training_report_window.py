@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class TrainingReportWindow(QDialog):
@@ -22,6 +23,7 @@ class TrainingReportWindow(QDialog):
         self.export_dir = export_dir
         self.setWindowTitle(self.t.get("training_report_window_title", "訓練報表"))
         self.resize(900, 560)
+        set_default_window_state(self)
         self._init_ui()
         self.load_depts()
         self.load_data()

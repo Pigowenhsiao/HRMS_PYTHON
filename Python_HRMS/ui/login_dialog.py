@@ -1,5 +1,6 @@
 import hashlib
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+from ui.window_utils import apply_window_controls
 
 
 class LoginDialog(QDialog):
@@ -11,6 +12,7 @@ class LoginDialog(QDialog):
         self.resize(320, 180)
         self.account = None
         self.perms = {}
+        apply_window_controls(self)
         self._init_ui()
 
     def _init_ui(self):

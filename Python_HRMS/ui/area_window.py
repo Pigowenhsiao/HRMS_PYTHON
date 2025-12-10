@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class AreaWindow(QDialog):
@@ -21,6 +22,7 @@ class AreaWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("area_window_title", "區域維護"))
         self.resize(700, 480)
+        set_default_window_state(self)
         self._init_ui()
         self.load_data()
 

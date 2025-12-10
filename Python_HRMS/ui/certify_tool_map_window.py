@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class CertifyToolMapWindow(QDialog):
@@ -20,6 +21,7 @@ class CertifyToolMapWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("certify_tool_map", "證照-機台對應"))
         self.resize(860, 540)
+        set_default_window_state(self)
         self._init_ui()
         self.load_data()
 

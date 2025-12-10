@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class SectionWindow(QDialog):
@@ -21,6 +22,7 @@ class SectionWindow(QDialog):
         self.t = translations
         self.setWindowTitle(self.t.get("section_window_title", "部門維護"))
         self.resize(760, 500)
+        set_default_window_state(self)
         self._init_ui()
         self.load_data()
 

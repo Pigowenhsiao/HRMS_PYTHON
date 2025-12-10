@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
+from ui.window_utils import set_default_window_state
 
 
 class TrainingRecordWindow(QDialog):
@@ -24,6 +25,7 @@ class TrainingRecordWindow(QDialog):
         self.certify_dao = certify_dao
         self.setWindowTitle(self.t.get("certify_record", "訓練/證照紀錄"))
         self.resize(1100, 620)
+        set_default_window_state(self)
         self._init_ui()
         self.load_filters()
         self.load_data()
