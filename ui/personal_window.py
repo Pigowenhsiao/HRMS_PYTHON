@@ -26,6 +26,7 @@ class PersonalWindow(QDialog):
         self.resize(980, 620)
         set_default_window_state(self)
         self._init_ui()
+        self._load_emp_ids()
         self.load_data()
 
     def _label(self, key, default):
@@ -113,8 +114,9 @@ class PersonalWindow(QDialog):
         form.setHorizontalSpacing(12)
         form.setVerticalSpacing(10)
 
-        self.emp_id = QLineEdit()
-        self.emp_id.setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
+        self.emp_id = QComboBox()
+        self.emp_id.setEditable(True)
+        self.emp_id.lineEdit().setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
         self.sex = QComboBox(); self.sex.addItems(["M", "F"])
         self.birthday = QLineEdit(); self.birthday.setPlaceholderText(self._label("date_placeholder", "YYYY-MM-DD"))
         self.personal_id = QLineEdit()
@@ -189,7 +191,7 @@ class PersonalWindow(QDialog):
         emp_id = values.get("emp_id", "")
         if emp_id:
             self.dao.ensure_person_info(emp_id)
-        self.emp_id.setText(emp_id)
+        self._set_combo_if_exists(self.emp_id, emp_id)
         self.sex.setCurrentIndex(0 if values.get("sex", "M") != "F" else 1)
         self.birthday.setText(values.get("birthday", ""))
         self.personal_id.setText(values.get("personal_id", ""))
@@ -210,8 +212,28 @@ class PersonalWindow(QDialog):
         self.meno.setText(values.get("meno", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
+    def _load_emp_ids(self):
+        self.emp_id.blockSignals(True)
+        self.emp_id.clear()
+        for emp_id in self.dao.list_emp_ids(active_only=True):
+            self.emp_id.addItem(emp_id, emp_id)
+        self.emp_id.blockSignals(False)
+
+    def _set_combo_if_exists(self, combo: QComboBox, value: str):
+        idx = combo.findData(value)
+        if idx >= 0:
+            combo.setCurrentIndex(idx)
+        else:
+            combo.setEditText(value)
+
+    def _get_combo_value(self, combo: QComboBox) -> str:
+        data = combo.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        return combo.currentText().strip()
+
     def save_info(self):
-        emp_id = self.emp_id.text().strip()
+        emp_id = self._get_combo_value(self.emp_id)
         if not emp_id:
             QMessageBox.warning(
                 self,

@@ -15,8 +15,8 @@ sample_area = [("A1", "台北"), ("A2", "新竹")]
 sample_job = [("FUN01", "工程"), ("FUN02", "測試")]
 
 sample_basic = [
-    ("000001", "D001", "王小明", "工程師", "2024-01-02", "A", "樣本", "FUN01", "A1", 1),
-    ("000002", "D002", "林小華", "技術員", "2023-12-15", "B", "樣本", "FUN02", "A2", 1),
+    ("000001", "D001", "王", "小明", "工程師", "2024-01-02", "A", "樣本", "FUN01", "A1", 1),
+    ("000002", "D002", "林", "小華", "技術員", "2023-12-15", "B", "樣本", "FUN02", "A2", 1),
 ]
 
 sample_person = [
@@ -75,8 +75,8 @@ def main():
     cur.executemany("INSERT OR IGNORE INTO l_job (l_job, l_job_desc, active) VALUES (?,?,1)", sample_job)
 
     cur.executemany(
-        "INSERT OR IGNORE INTO basic (emp_id, dept_code, c_name, title, on_board_date, shift, meno, update_date, function, area, active) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-        [(e, d, n, t, ob, sh, m, now, f, a, act) for e, d, n, t, ob, sh, m, f, a, act in sample_basic],
+        "INSERT OR IGNORE INTO basic (emp_id, dept_code, last_name, first_name, title, on_board_date, shift, meno, update_date, function, area, active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        [(e, d, ln, fn, t, ob, sh, m, now, f, a, act) for e, d, ln, fn, t, ob, sh, m, f, a, act in sample_basic],
     )
 
     cur.executemany(

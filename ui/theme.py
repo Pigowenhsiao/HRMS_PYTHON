@@ -62,6 +62,13 @@ _THEMES: Dict[str, Dict[str, str]] = {
 
 
 def _build_stylesheet(colors: Dict[str, str]) -> str:
+    arrow_color = colors["muted"].lstrip("#")
+    arrow_svg = (
+        "data:image/svg+xml;utf8,"
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'>"
+        f"<path fill='%23{arrow_color}' d='M0 0h10L5 6z'/>"
+        "</svg>"
+    )
     return f"""
     QWidget {{
         background-color: {colors['bg']};
@@ -174,12 +181,35 @@ def _build_stylesheet(colors: Dict[str, str]) -> str:
         selection-background-color: {colors['accent']};
         selection-color: {colors['accent_text']};
     }}
+    QComboBox, QDateEdit {{
+        padding-right: 26px;
+    }}
     QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QTextEdit:focus {{
         border: 1px solid {colors['accent']};
     }}
     QComboBox::drop-down {{
-        border: none;
-        width: 18px;
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 22px;
+        border-left: 1px solid {colors['border']};
+        background-color: {colors['input_bg']};
+    }}
+    QComboBox::down-arrow {{
+        image: url("{arrow_svg}");
+        width: 10px;
+        height: 6px;
+    }}
+    QDateEdit::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 22px;
+        border-left: 1px solid {colors['border']};
+        background-color: {colors['input_bg']};
+    }}
+    QDateEdit::down-arrow {{
+        image: url("{arrow_svg}");
+        width: 10px;
+        height: 6px;
     }}
     QTableWidget {{
         background-color: {colors['card_bg']};

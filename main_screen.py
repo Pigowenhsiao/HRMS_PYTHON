@@ -1,5 +1,6 @@
 ﻿import json
 import sys
+import sqlite3
 from pathlib import Path
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -85,6 +86,75 @@ def _normalize_config_paths(config: dict) -> dict:
     return config
 
 
+def _migrate_basic_name_schema(db_path: Path) -> None:
+    if not db_path.exists():
+        return
+    con = sqlite3.connect(db_path)
+    try:
+        cur = con.cursor()
+        if not cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='basic'").fetchone():
+            return
+        cols = [row[1] for row in cur.execute("PRAGMA table_info(basic)").fetchall()]
+        has_c_name = "c_name" in cols
+        has_last = "last_name" in cols
+        has_first = "first_name" in cols
+        if not has_c_name and has_last and has_first:
+            return
+        if not has_c_name:
+            if not has_last:
+                cur.execute("ALTER TABLE basic ADD COLUMN last_name TEXT")
+            if not has_first:
+                cur.execute("ALTER TABLE basic ADD COLUMN first_name TEXT")
+            con.commit()
+            return
+        last_expr = "CASE WHEN c_name IS NULL OR c_name = '' THEN '' ELSE substr(c_name, 1, 1) END"
+        first_expr = "CASE WHEN c_name IS NULL OR c_name = '' THEN '' ELSE substr(c_name, 2) END"
+        if has_last:
+            last_expr = f"COALESCE(last_name, {last_expr})"
+        if has_first:
+            first_expr = f"COALESCE(first_name, {first_expr})"
+        cur.execute("PRAGMA foreign_keys=OFF")
+        cur.execute("BEGIN")
+        cur.execute(
+            """
+            CREATE TABLE basic_new (
+                emp_id        TEXT PRIMARY KEY,
+                dept_code     TEXT REFERENCES l_section(dept_code),
+                last_name     TEXT,
+                first_name    TEXT,
+                title         TEXT,
+                on_board_date TEXT,
+                shift         TEXT,
+                meno          TEXT,
+                update_date   TEXT,
+                function      TEXT REFERENCES l_job(l_job),
+                area          TEXT REFERENCES area(area),
+                active        INTEGER DEFAULT 1
+            )
+            """
+        )
+        cur.execute(
+            f"""
+            INSERT INTO basic_new
+            (emp_id, dept_code, last_name, first_name, title, on_board_date, shift, meno, update_date, function, area, active)
+            SELECT emp_id, dept_code, {last_expr}, {first_expr}, title, on_board_date, shift, meno, update_date, function, area, active
+            FROM basic
+            """
+        )
+        cur.execute("DROP TABLE basic")
+        cur.execute("ALTER TABLE basic_new RENAME TO basic")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_basic_dept ON basic(dept_code)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_basic_area ON basic(area)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_basic_active ON basic(active)")
+        con.commit()
+    finally:
+        try:
+            con.execute("PRAGMA foreign_keys=ON")
+        except Exception:
+            pass
+        con.close()
+
+
 def load_i18n(lang: str):
     lang_map = {"zh": "strings_zh.json", "en": "strings_en.json", "ja": "strings_ja.json"}
     filename = lang_map.get(lang, lang_map["zh"])
@@ -127,6 +197,8 @@ class MainScreen(QMainWindow):
         export_path_cfg = Path(self.config.get("export_path", "./export"))
         db_path = db_path_cfg if db_path_cfg.is_absolute() else (base_dir / db_path_cfg)
         export_path = export_path_cfg if export_path_cfg.is_absolute() else (base_dir / export_path_cfg)
+
+        _migrate_basic_name_schema(db_path)
 
         self.db = Database(db_path)
         self.certify_dao = CertifyDAO(self.db)

@@ -85,7 +85,9 @@ class EducationWindow(QDialog):
         form = QGridLayout()
         form.setHorizontalSpacing(12)
         form.setVerticalSpacing(10)
-        self.emp_input = QLineEdit(); self.emp_input.setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
+        self.emp_input = QComboBox()
+        self.emp_input.setEditable(True)
+        self.emp_input.lineEdit().setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
         self.edu_input = QLineEdit(); self.school_input = QLineEdit(); self.major_input = QLineEdit()
         form.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")), 0, 0)
         form.addWidget(self.emp_input, 0, 1)
@@ -123,6 +125,14 @@ class EducationWindow(QDialog):
         for v in self.dao.list_distinct("g_school"): self.school_cb.addItem(v, v)
         for v in self.dao.list_distinct("major"): self.major_cb.addItem(v, v)
         self.education_cb.blockSignals(False); self.school_cb.blockSignals(False); self.major_cb.blockSignals(False)
+        self._load_emp_ids()
+
+    def _load_emp_ids(self):
+        self.emp_input.blockSignals(True)
+        self.emp_input.clear()
+        for emp_id in self.dao.list_emp_ids(active_only=True):
+            self.emp_input.addItem(emp_id, emp_id)
+        self.emp_input.blockSignals(False)
 
     def on_row_selected(self):
         items = self.table.selectedItems();
@@ -134,7 +144,7 @@ class EducationWindow(QDialog):
         self._set_combo_if_exists(self.education_cb, edu)
         self._set_combo_if_exists(self.school_cb, school)
         self._set_combo_if_exists(self.major_cb, major)
-        self.emp_input.setText(values.get("emp_id", ""))
+        self._set_combo_if_exists(self.emp_input, values.get("emp_id", ""))
         self.edu_input.setText(edu)
         self.school_input.setText(school)
         self.major_input.setText(major)
@@ -143,6 +153,14 @@ class EducationWindow(QDialog):
         idx = combo.findData(value)
         if idx >= 0:
             combo.setCurrentIndex(idx)
+        else:
+            combo.setEditText(value)
+
+    def _get_combo_value(self, combo: QComboBox) -> str:
+        data = combo.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        return combo.currentText().strip()
 
     def load_data(self, force_edu=False, force_school=False, force_major=False):
         rows = self.dao.list_education(
@@ -170,7 +188,7 @@ class EducationWindow(QDialog):
             return
         try:
             self.dao.upsert_education(
-                emp_id=emp,
+                emp_id=self._get_combo_value(self.emp_input),
                 education=self.edu_input.text().strip(),
                 g_school=self.school_input.text().strip(),
                 major=self.major_input.text().strip(),

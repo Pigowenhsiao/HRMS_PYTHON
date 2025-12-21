@@ -9,7 +9,7 @@ class PersonalDAO:
     def list_person_info(self, emp_id: str = "", active_only: bool = True) -> List[Dict[str, Any]]:
         sql = """
         SELECT p.emp_id,
-               b.c_name,
+               (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name,
                p.sex,
                p.birthday,
                p.personal_id,

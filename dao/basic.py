@@ -92,7 +92,9 @@ class BasicDAO:
         SELECT b.emp_id,
                b.dept_code,
                s.dept_desc,
-               b.c_name,
+               b.last_name,
+               b.first_name,
+               (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name,
                b.title,
                b.on_board_date,
                b.shift,
@@ -129,7 +131,8 @@ class BasicDAO:
         self,
         emp_id: str,
         dept_code: str,
-        c_name: str,
+        last_name: str,
+        first_name: str,
         title: str,
         on_board_date: str,
         shift: str,
@@ -139,16 +142,19 @@ class BasicDAO:
         active: bool,
     ) -> int:
         sql = """
-        INSERT INTO basic (emp_id, dept_code, c_name, title, on_board_date, shift, meno, update_date, function, area, active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, date('now'), ?, ?, ?)
+        INSERT INTO basic (emp_id, dept_code, last_name, first_name, title, on_board_date, shift, meno, update_date, function, area, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, date('now'), ?, ?, ?)
         """
-        return self.db.execute(sql, (emp_id, dept_code, c_name, title, on_board_date, shift, meno, function, area, int(active)))
+        return self.db.execute(
+            sql, (emp_id, dept_code, last_name, first_name, title, on_board_date, shift, meno, function, area, int(active))
+        )
 
     def update_basic(
         self,
         emp_id: str,
         dept_code: str,
-        c_name: str,
+        last_name: str,
+        first_name: str,
         title: str,
         on_board_date: str,
         shift: str,
@@ -159,11 +165,13 @@ class BasicDAO:
     ) -> int:
         sql = """
         UPDATE basic
-        SET dept_code = ?, c_name = ?, title = ?, on_board_date = ?, shift = ?, meno = ?, update_date = date('now'),
+        SET dept_code = ?, last_name = ?, first_name = ?, title = ?, on_board_date = ?, shift = ?, meno = ?, update_date = date('now'),
             function = ?, area = ?, active = ?
         WHERE emp_id = ?
         """
-        return self.db.execute(sql, (dept_code, c_name, title, on_board_date, shift, meno, function, area, int(active), emp_id))
+        return self.db.execute(
+            sql, (dept_code, last_name, first_name, title, on_board_date, shift, meno, function, area, int(active), emp_id)
+        )
 
     def delete_basic(self, emp_id: str) -> int:
         sql = "DELETE FROM basic WHERE emp_id = ?"

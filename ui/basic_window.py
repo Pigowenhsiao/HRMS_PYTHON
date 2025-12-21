@@ -84,7 +84,8 @@ class BasicWindow(QDialog):
             ("emp_id", "col_emp_id"),
             ("dept_code", "col_dept_code"),
             ("dept_desc", "col_dept_desc"),
-            ("c_name", "col_c_name"),
+            ("last_name", "col_last_name"),
+            ("first_name", "col_first_name"),
             ("title", "col_title"),
             ("on_board_date", "col_on_board_date"),
             ("shift", "col_shift"),
@@ -107,7 +108,8 @@ class BasicWindow(QDialog):
         form.setColumnStretch(1, 1)
         form.setColumnStretch(2, 0)
         form.setColumnStretch(3, 1)
-        self.emp_id = QLineEdit(); self.dept_code = QComboBox(); self.c_name = QLineEdit(); self.title = QComboBox()
+        self.emp_id = QLineEdit(); self.dept_code = QComboBox()
+        self.last_name = QLineEdit(); self.first_name = QLineEdit(); self.title = QComboBox()
         self.title.setEditable(True)
         self.on_board_date = PopupDateEdit()
         self.on_board_date.setDisplayFormat("yyyy-MM-dd")
@@ -118,13 +120,22 @@ class BasicWindow(QDialog):
         self.area = QComboBox(); self.function = QComboBox(); self.meno = QLineEdit()
         self.active = QCheckBox(self.t.get("col_active", "Active")); self.active.setChecked(True)
         labels = [
-            self.t.get("col_emp_id", "EMP_ID"), self.t.get("col_dept", "Dept"),
-            self.t.get("col_c_name", "Name"), self.t.get("col_title", "Title"),
-            self.t.get("col_on_board_date", "On Board"), self.t.get("col_shift", "Shift"),
-            self.t.get("col_area", "Area"), self.t.get("col_function", "Function"),
-            self.t.get("col_meno", "Memo"), self.t.get("col_active", "Active"),
+            self.t.get("col_emp_id", "EMP_ID"),
+            self.t.get("col_dept", "Dept"),
+            self.t.get("col_last_name", "Last Name"),
+            self.t.get("col_first_name", "First Name"),
+            self.t.get("col_title", "Title"),
+            self.t.get("col_on_board_date", "On Board"),
+            self.t.get("col_shift", "Shift"),
+            self.t.get("col_area", "Area"),
+            self.t.get("col_function", "Function"),
+            self.t.get("col_meno", "Memo"),
+            self.t.get("col_active", "Active"),
         ]
-        widgets = [self.emp_id, self.dept_code, self.c_name, self.title, self.on_board_date, self.shift, self.area, self.function, self.meno, self.active]
+        widgets = [
+            self.emp_id, self.dept_code, self.last_name, self.first_name, self.title,
+            self.on_board_date, self.shift, self.area, self.function, self.meno, self.active
+        ]
         for i, (lab, wid) in enumerate(zip(labels, widgets)):
             form.addWidget(QLabel(lab), i // 2, (i % 2) * 2); form.addWidget(wid, i // 2, (i % 2) * 2 + 1)
         layout.addLayout(form)
@@ -190,7 +201,8 @@ class BasicWindow(QDialog):
         values = {field_order[c]: self.table.item(idx, c).text() for c in range(len(field_order))}
         self.emp_id.setText(values.get("emp_id", ""))
         self.dept_code.setCurrentIndex(max(0, self.dept_code.findData(values.get("dept_code", ""))))
-        self.c_name.setText(values.get("c_name", ""))
+        self.last_name.setText(values.get("last_name", ""))
+        self.first_name.setText(values.get("first_name", ""))
         self._set_combo_if_exists(self.title, values.get("title", ""))
         raw_date = values.get("on_board_date", "")
         parsed = QDate.fromString(raw_date, "yyyy-MM-dd")
@@ -226,7 +238,8 @@ class BasicWindow(QDialog):
         return dict(
             emp_id=self.emp_id.text().strip(),
             dept_code=self.dept_code.currentData(),
-            c_name=self.c_name.text().strip(),
+            last_name=self.last_name.text().strip(),
+            first_name=self.first_name.text().strip(),
             title=self._get_combo_value(self.title),
             on_board_date=on_board_date,
             shift=self._get_combo_value(self.shift),
@@ -238,11 +251,11 @@ class BasicWindow(QDialog):
 
     def create_record(self):
         data = self._collect_form()
-        if not data["emp_id"] or not data["dept_code"] or not data["c_name"]:
+        if not data["emp_id"] or not data["dept_code"] or not data["last_name"]:
             QMessageBox.warning(
                 self,
                 self.t.get("warn", "Warn"),
-                self.t.get("msg_required_basic_fields", "EMP_ID / Dept / Name 必填"),
+                self.t.get("msg_required_basic_fields", "EMP_ID / Dept / 姓氏 必填"),
             )
             return
         try:

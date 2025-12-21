@@ -9,7 +9,7 @@ class ReportDAO:
     def training_by_dept(self, dept_code: Optional[str] = None, min_days: int = 0) -> List[Dict[str, Any]]:
         sql = """
         SELECT t.emp_id,
-               b.c_name,
+               (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name,
                s.dept_desc,
                t.certify_id,
                i.certify_name,
@@ -46,7 +46,7 @@ class ReportDAO:
 
     def training_filtered(self, emp_id: str = "", certify_id: str = "", active_only: bool = True) -> List[Dict[str, Any]]:
         sql = """
-        SELECT t.certify_no, t.emp_id, b.c_name, t.certify_id, i.certify_name, t.certify_date, t.certify_type, t.remark, t.active
+        SELECT t.certify_no, t.emp_id, (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name, t.certify_id, i.certify_name, t.certify_date, t.certify_type, t.remark, t.active
         FROM training_record t
         LEFT JOIN basic b ON t.emp_id = b.emp_id
         LEFT JOIN certify_items i ON t.certify_id = i.certify_id

@@ -127,7 +127,7 @@ class CertifyDAO:
         sql = """
         SELECT t.certify_no,
                t.emp_id,
-               b.c_name,
+               (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name,
                b.dept_code,
                b.area,
                t.certify_id,

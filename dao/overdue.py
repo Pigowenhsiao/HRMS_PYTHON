@@ -9,7 +9,7 @@ class OverdueDAO:
     def list_overdue(self, min_days: int = 0) -> List[Dict[str, Any]]:
         sql = """
         SELECT t.emp_id,
-               b.c_name,
+               (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name,
                t.certify_id,
                i.certify_name,
                t.certify_date,

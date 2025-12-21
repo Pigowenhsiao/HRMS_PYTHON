@@ -22,7 +22,7 @@ class EducationDAO:
     ) -> List[Dict[str, Any]]:
         sql = """
         SELECT e.emp_id,
-               b.c_name,
+               (COALESCE(b.last_name, '') || COALESCE(b.first_name, '')) AS c_name,
                e.education,
                e.g_school,
                e.major

@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS l_job (
 CREATE TABLE IF NOT EXISTS basic (
     emp_id        TEXT PRIMARY KEY,
     dept_code     TEXT REFERENCES l_section(dept_code),
-    c_name        TEXT,
+    last_name     TEXT,
+    first_name    TEXT,
     title         TEXT,
     on_board_date TEXT,
     shift         TEXT,
