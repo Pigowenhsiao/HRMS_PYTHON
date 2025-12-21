@@ -1,6 +1,6 @@
 {
-  "title": "HRMS_NEW 人資與訓練管理",
-  "heading": "HRMS_NEW 人力資源與訓練管理",
+  "title": "HRMS 人資與訓練管理",
+  "heading": "HRMS 人力資源與訓練管理",
   "sub": "核心功能：員工主檔、個資、學歷、證照設定/紀錄、權限、報表與到期檢核。後端：SQLite。",
   "section_employee": "員工資料",
   "employee_basic": "員工主檔 / 基本資料",
@@ -65,6 +65,7 @@
   "msg_select_row": "請先選擇一列",
   "msg_update_done": "更新完成",
   "date_placeholder": "YYYY-MM-DD",
+  "edit_section": "編輯區",
   "area_window_title": "區域維護",
   "section_window_title": "部門維護",
   "job_window_title": "職務/Function 維護",

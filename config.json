@@ -3,6 +3,6 @@
   "db_path": "./data/hrms.db",
   "export_path": "./export",
   "version": "0.3.3",
-  "app_name": "HRMS_NEW",
+  "app_name": "HRMS",
   "theme": "light"
 }

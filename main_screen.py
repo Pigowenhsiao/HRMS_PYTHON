@@ -44,7 +44,7 @@ from ui.theme import apply_theme
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
 I18N_DIR = Path(__file__).parent / "i18n"
-APP_NAME = "HRMS_NEW"
+APP_NAME = "HRMS"
 DEFAULT_CONFIG = {
     "default_lang": "ja",
     "db_path": "./data/hrms.db",
@@ -63,11 +63,24 @@ def load_config():
     config = DEFAULT_CONFIG.copy()
     if CONFIG_PATH.exists():
         config.update(_read_json(CONFIG_PATH))
+    config = _normalize_config_paths(config)
     return config
 
 
 def save_config(config: dict):
     CONFIG_PATH.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _normalize_config_paths(config: dict) -> dict:
+    db_path = Path(config.get("db_path", DEFAULT_CONFIG["db_path"]))
+    if not db_path.is_absolute():
+        base_dir = Path(__file__).parent
+        candidate = base_dir / db_path
+        if not candidate.exists():
+            alt = base_dir / "DATA" / "hrms.db"
+            if alt.exists():
+                config["db_path"] = "./DATA/hrms.db"
+    return config
 
 
 def load_i18n(lang: str):

@@ -6,6 +6,42 @@ class PersonalDAO:
     def __init__(self, db: Database):
         self.db = db
 
+    def list_person_info(self, emp_id: str = "", active_only: bool = True) -> List[Dict[str, Any]]:
+        sql = """
+        SELECT p.emp_id,
+               b.c_name,
+               p.sex,
+               p.birthday,
+               p.personal_id,
+               p.home_phone,
+               p.current_phone,
+               p.cell_phone,
+               p.living_place,
+               p.living_place2,
+               p.emg_name1,
+               p.emg_phone1,
+               p.emg_releasion1,
+               p.emg_name2,
+               p.emg_phone2,
+               p.emg_releasion2,
+               p.perf_year,
+               p.excomp_year,
+               p.ex_compy_type,
+               p.meno,
+               p.active
+        FROM person_info p
+        LEFT JOIN basic b ON p.emp_id = b.emp_id
+        WHERE 1=1
+        """
+        params = []
+        if active_only:
+            sql += " AND p.active = 1"
+        if emp_id:
+            sql += " AND p.emp_id = ?"
+            params.append(emp_id.strip())
+        sql += " ORDER BY p.emp_id"
+        return self.db.fetch_all(sql, params)
+
     def list_emp_ids(self, active_only: bool = True) -> List[str]:
         sql = "SELECT emp_id FROM basic"
         params = []

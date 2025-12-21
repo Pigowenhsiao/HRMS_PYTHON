@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['HRMS_NEW.py'],
+    ['HRMS.py'],
     pathex=[],
     binaries=[],
-    datas=[('config.json', '.'), ('i18n', 'i18n'), ('data/hrms.db', 'data')],
+    datas=[('config.json', '.'), ('i18n', 'i18n'), ('data/hrms.db', 'DATA')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -22,7 +22,7 @@ exe = EXE(
     [],
     [],
     [],
-    name='HRMS_NEW',
+    name='HRMS',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -45,12 +45,12 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='HRMS_NEW',
+    name='HRMS',
 )
 
 datas=[
     ('config.json', '.'),
     ('i18n', 'i18n'),
-    ('data/hrms.db', 'data'),
+    ('data/hrms.db', 'DATA'),
     # ('export', 'export'),  # optional
 ]

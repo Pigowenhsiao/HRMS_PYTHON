@@ -1,6 +1,6 @@
 ﻿from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QCheckBox, QPushButton,
-    QTableWidget, QTableWidgetItem, QLineEdit, QMessageBox, QHeaderView
+    QTableWidget, QTableWidgetItem, QLineEdit, QMessageBox, QHeaderView, QGroupBox, QGridLayout
 )
 from PyQt5.QtCore import Qt
 from ui.window_utils import set_default_window_state
@@ -12,7 +12,7 @@ class EducationWindow(QDialog):
         self.dao = dao
         self.t = translations
         self.setWindowTitle(self.t.get("education_window_title", "學歷 / 畢業資訊"))
-        self.resize(900, 560)
+        self.resize(920, 600)
         set_default_window_state(self)
         self._init_ui()
         self.load_filters()
@@ -75,17 +75,38 @@ class EducationWindow(QDialog):
         self.table.itemSelectionChanged.connect(self.on_row_selected)
         layout.addWidget(self.table)
 
-        # Form
-        form_row = QHBoxLayout()
-        form_row.setSpacing(10)
-        self.emp_input = QLineEdit(); self.emp_input.setPlaceholderText(self._label("col_emp_id","EMP_ID"))
+        # Form (bottom editor)
+        edit_box = QGroupBox(self._label("edit_section", "編輯區"))
+        edit_box.setMinimumHeight(180)
+        edit_layout = QVBoxLayout()
+        edit_layout.setContentsMargins(12, 12, 12, 12)
+        edit_layout.setSpacing(10)
+
+        form = QGridLayout()
+        form.setHorizontalSpacing(12)
+        form.setVerticalSpacing(10)
+        self.emp_input = QLineEdit(); self.emp_input.setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
         self.edu_input = QLineEdit(); self.school_input = QLineEdit(); self.major_input = QLineEdit()
-        self.update_btn = QPushButton(self._label("update", "Update")); self.update_btn.clicked.connect(self.update_record)
-        form_row.addWidget(QLabel(self._label("col_emp_id", "EMP_ID"))); form_row.addWidget(self.emp_input)
-        form_row.addWidget(QLabel(self._label("col_education", "Education"))); form_row.addWidget(self.edu_input)
-        form_row.addWidget(QLabel(self._label("col_g_school", "School"))); form_row.addWidget(self.school_input)
-        form_row.addWidget(QLabel(self._label("col_major", "Major"))); form_row.addWidget(self.major_input)
-        form_row.addWidget(self.update_btn); form_row.addStretch(); layout.addLayout(form_row)
+        form.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")), 0, 0)
+        form.addWidget(self.emp_input, 0, 1)
+        form.addWidget(QLabel(self._label("col_education", "Education")), 0, 2)
+        form.addWidget(self.edu_input, 0, 3)
+        form.addWidget(QLabel(self._label("col_g_school", "School")), 1, 0)
+        form.addWidget(self.school_input, 1, 1)
+        form.addWidget(QLabel(self._label("col_major", "Major")), 1, 2)
+        form.addWidget(self.major_input, 1, 3)
+        edit_layout.addLayout(form)
+
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
+        self.update_btn = QPushButton(self._label("update", "Update"))
+        self.update_btn.clicked.connect(self.update_record)
+        btn_row.addStretch()
+        btn_row.addWidget(self.update_btn)
+        edit_layout.addLayout(btn_row)
+
+        edit_box.setLayout(edit_layout)
+        layout.addWidget(edit_box)
 
         self.setLayout(layout)
 

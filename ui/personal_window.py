@@ -1,4 +1,4 @@
-﻿from PyQt5.QtWidgets import (
+from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -9,9 +9,12 @@
     QPushButton,
     QMessageBox,
     QGridLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class PersonalWindow(QDialog):
@@ -20,13 +23,10 @@ class PersonalWindow(QDialog):
         self.dao = dao
         self.t = translations
         self.setWindowTitle(self.t.get("personal_window_title", "個人資訊 / 聯絡方式"))
-        self.resize(820, 520)
+        self.resize(980, 620)
         set_default_window_state(self)
         self._init_ui()
-        self.load_emp_ids()
-        if self.emp_combo.count() > 0:
-            self.emp_combo.setCurrentIndex(0)
-            self.load_person_info()
+        self.load_data()
 
     def _label(self, key, default):
         return self.t.get(key, default)
@@ -36,20 +36,85 @@ class PersonalWindow(QDialog):
         layout.setContentsMargins(18, 18, 18, 18)
         layout.setSpacing(12)
 
-        # EMP selector
-        top_row = QHBoxLayout()
-        top_row.setSpacing(10)
-        top_row.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")))
-        self.emp_combo = QComboBox()
-        self.emp_combo.currentIndexChanged.connect(self.load_person_info)
-        top_row.addWidget(self.emp_combo)
-        top_row.addStretch()
-        layout.addLayout(top_row)
+        filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
+        filter_row.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")))
+        self.emp_filter = QLineEdit()
+        self.emp_filter.setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
+        self.active_only = QCheckBox(self._label("only_active", "Only Active"))
+        self.active_only.setChecked(True)
+        self.refresh_btn = QPushButton(self.t.get("refresh", "Refresh"))
+        self.refresh_btn.clicked.connect(self.load_data)
+        filter_row.addWidget(self.emp_filter)
+        filter_row.addWidget(self.active_only)
+        filter_row.addWidget(self.refresh_btn)
+        filter_row.addStretch()
+        layout.addLayout(filter_row)
+
+        self.headers = [
+            "emp_id",
+            "c_name",
+            "sex",
+            "birthday",
+            "personal_id",
+            "home_phone",
+            "current_phone",
+            "cell_phone",
+            "living_place",
+            "living_place2",
+            "emg_name1",
+            "emg_phone1",
+            "emg_releasion1",
+            "emg_name2",
+            "emg_phone2",
+            "emg_releasion2",
+            "perf_year",
+            "excomp_year",
+            "ex_compy_type",
+            "meno",
+            "active",
+        ]
+        header_labels = [
+            self._label("col_emp_id", "EMP_ID"),
+            self._label("col_c_name", "Name"),
+            self._label("col_sex", "Sex"),
+            self._label("col_birthday", "Birthday"),
+            self._label("col_personal_id", "Personal ID"),
+            self._label("col_home_phone", "Home Phone"),
+            self._label("col_current_phone", "Current Phone"),
+            self._label("col_cell_phone", "Cell Phone"),
+            self._label("col_living_place", "Living Place"),
+            self._label("col_living_place2", "Living Place2"),
+            self._label("col_emg_name1", "EMG Name1"),
+            self._label("col_emg_phone1", "EMG Phone1"),
+            self._label("col_emg_rel1", "Relation1"),
+            self._label("col_emg_name2", "EMG Name2"),
+            self._label("col_emg_phone2", "EMG Phone2"),
+            self._label("col_emg_rel2", "Relation2"),
+            self._label("col_perf_year", "Perf Year"),
+            self._label("col_excomp_year", "Excomp Year"),
+            self._label("col_ex_compy_type", "Ex Company Type"),
+            self._label("col_meno", "Memo"),
+            self._label("col_active", "Active"),
+        ]
+        self.table = QTableWidget()
+        self.table.setColumnCount(len(self.headers))
+        self.table.setHorizontalHeaderLabels(header_labels)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setStretchLastSection(True)
+        self.table.verticalHeader().setDefaultSectionSize(26)
+        self.table.setSelectionBehavior(self.table.SelectRows)
+        self.table.setSelectionMode(self.table.SingleSelection)
+        self.table.itemSelectionChanged.connect(self.on_row_selected)
+        layout.addWidget(self.table)
 
         form = QGridLayout()
         form.setHorizontalSpacing(12)
         form.setVerticalSpacing(10)
 
+        self.emp_id = QLineEdit()
+        self.emp_id.setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
         self.sex = QComboBox(); self.sex.addItems(["M", "F"])
         self.birthday = QLineEdit(); self.birthday.setPlaceholderText(self._label("date_placeholder", "YYYY-MM-DD"))
         self.personal_id = QLineEdit()
@@ -64,6 +129,7 @@ class PersonalWindow(QDialog):
         self.meno = QLineEdit(); self.active = QCheckBox(self._label("col_active", "Active")); self.active.setChecked(True)
 
         labels = [
+            ("col_emp_id", self.emp_id),
             ("col_sex", self.sex),
             ("col_birthday", self.birthday),
             ("col_personal_id", self.personal_id),
@@ -86,8 +152,8 @@ class PersonalWindow(QDialog):
         ]
 
         for i, (key, widget) in enumerate(labels):
-            form.addWidget(QLabel(self._label(key, key)), i, 0)
-            form.addWidget(widget, i, 1)
+            form.addWidget(QLabel(self._label(key, key)), i // 2, (i % 2) * 2)
+            form.addWidget(widget, i // 2, (i % 2) * 2 + 1)
 
         layout.addLayout(form)
 
@@ -101,41 +167,51 @@ class PersonalWindow(QDialog):
 
         self.setLayout(layout)
 
-    def load_emp_ids(self):
-        self.emp_combo.blockSignals(True)
-        self.emp_combo.clear()
-        for emp in self.dao.list_emp_ids(active_only=True):
-            self.emp_combo.addItem(emp, emp)
-        self.emp_combo.blockSignals(False)
+    def load_data(self):
+        rows = self.dao.list_person_info(
+            emp_id=self.emp_filter.text().strip(),
+            active_only=self.active_only.isChecked(),
+        )
+        self.table.setRowCount(len(rows))
+        for r_idx, row in enumerate(rows):
+            for c_idx, key in enumerate(self.headers):
+                item = QTableWidgetItem(str(row.get(key, "")))
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [len(self.headers) - 1])
 
-    def load_person_info(self):
-        emp_id = self.emp_combo.currentData()
-        if not emp_id:
+    def on_row_selected(self):
+        items = self.table.selectedItems()
+        if not items:
             return
-        self.dao.ensure_person_info(emp_id)
-        data = self.dao.get_person_info(emp_id)
-        self.sex.setCurrentIndex(0 if data.get("sex", "M") != "F" else 1)
-        self.birthday.setText(data.get("birthday", ""))
-        self.personal_id.setText(data.get("personal_id", ""))
-        self.home_phone.setText(data.get("home_phone", ""))
-        self.current_phone.setText(data.get("current_phone", ""))
-        self.cell_phone.setText(data.get("cell_phone", ""))
-        self.living_place.setText(data.get("living_place", ""))
-        self.living_place2.setText(data.get("living_place2", ""))
-        self.emg_name1.setText(data.get("emg_name1", ""))
-        self.emg_phone1.setText(data.get("emg_phone1", ""))
-        self.emg_rel1.setText(data.get("emg_releasion1", ""))
-        self.emg_name2.setText(data.get("emg_name2", ""))
-        self.emg_phone2.setText(data.get("emg_phone2", ""))
-        self.emg_rel2.setText(data.get("emg_releasion2", ""))
-        self.perf_year.setText(str(data.get("perf_year", "") or ""))
-        self.excomp_year.setText(str(data.get("excomp_year", "") or ""))
-        self.ex_compy_type.setText(data.get("ex_compy_type", ""))
-        self.meno.setText(data.get("meno", ""))
-        self.active.setChecked(str(data.get("active", "1")) in ("1", "True", "true"))
+        r = items[0].row()
+        values = {self.headers[c]: self.table.item(r, c).text() for c in range(len(self.headers))}
+        emp_id = values.get("emp_id", "")
+        if emp_id:
+            self.dao.ensure_person_info(emp_id)
+        self.emp_id.setText(emp_id)
+        self.sex.setCurrentIndex(0 if values.get("sex", "M") != "F" else 1)
+        self.birthday.setText(values.get("birthday", ""))
+        self.personal_id.setText(values.get("personal_id", ""))
+        self.home_phone.setText(values.get("home_phone", ""))
+        self.current_phone.setText(values.get("current_phone", ""))
+        self.cell_phone.setText(values.get("cell_phone", ""))
+        self.living_place.setText(values.get("living_place", ""))
+        self.living_place2.setText(values.get("living_place2", ""))
+        self.emg_name1.setText(values.get("emg_name1", ""))
+        self.emg_phone1.setText(values.get("emg_phone1", ""))
+        self.emg_rel1.setText(values.get("emg_releasion1", ""))
+        self.emg_name2.setText(values.get("emg_name2", ""))
+        self.emg_phone2.setText(values.get("emg_phone2", ""))
+        self.emg_rel2.setText(values.get("emg_releasion2", ""))
+        self.perf_year.setText(str(values.get("perf_year", "") or ""))
+        self.excomp_year.setText(str(values.get("excomp_year", "") or ""))
+        self.ex_compy_type.setText(values.get("ex_compy_type", ""))
+        self.meno.setText(values.get("meno", ""))
+        self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
     def save_info(self):
-        emp_id = self.emp_combo.currentData()
+        emp_id = self.emp_id.text().strip()
         if not emp_id:
             QMessageBox.warning(
                 self,
@@ -144,6 +220,7 @@ class PersonalWindow(QDialog):
             )
             return
         try:
+            self.dao.ensure_person_info(emp_id)
             self.dao.update_person_info(
                 emp_id=emp_id,
                 sex=self.sex.currentText(),
@@ -172,5 +249,6 @@ class PersonalWindow(QDialog):
                 self.t.get("info", "Info"),
                 self.t.get("msg_update_done", "更新完成"),
             )
+            self.load_data()
         except Exception as e:
             QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

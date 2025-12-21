@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QMessageBox,
+    QGroupBox,
 )
 from PyQt5.QtCore import Qt
 from ui.window_utils import set_default_window_state, center_table_columns
@@ -71,6 +72,12 @@ class CertifyToolMapWindow(QDialog):
         layout.addWidget(self.table)
 
         # 表單
+        edit_box = QGroupBox(self.t.get("edit_section", "編輯區"))
+        edit_box.setMinimumHeight(180)
+        edit_layout = QVBoxLayout()
+        edit_layout.setContentsMargins(12, 12, 12, 12)
+        edit_layout.setSpacing(10)
+
         form_row1 = QHBoxLayout()
         form_row1.setSpacing(10)
         self.certify_id = QLineEdit()
@@ -79,7 +86,7 @@ class CertifyToolMapWindow(QDialog):
         form_row1.addWidget(self.certify_id)
         form_row1.addWidget(QLabel(self.t.get("col_tool_id", "Tool ID")))
         form_row1.addWidget(self.tool_id)
-        layout.addLayout(form_row1)
+        edit_layout.addLayout(form_row1)
 
         form_row2 = QHBoxLayout()
         form_row2.setSpacing(10)
@@ -90,7 +97,7 @@ class CertifyToolMapWindow(QDialog):
         form_row2.addWidget(self.remark)
         form_row2.addWidget(self.active)
         form_row2.addStretch()
-        layout.addLayout(form_row2)
+        edit_layout.addLayout(form_row2)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
@@ -104,7 +111,10 @@ class CertifyToolMapWindow(QDialog):
         btn_row.addWidget(self.update_btn)
         btn_row.addWidget(self.delete_btn)
         btn_row.addStretch()
-        layout.addLayout(btn_row)
+        edit_layout.addLayout(btn_row)
+
+        edit_box.setLayout(edit_layout)
+        layout.addWidget(edit_box)
 
         self.setLayout(layout)
 

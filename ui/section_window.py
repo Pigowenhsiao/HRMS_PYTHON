@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QMessageBox,
+    QGroupBox,
     QHeaderView,
 )
 from PyQt5.QtCore import Qt
@@ -47,6 +48,12 @@ class SectionWindow(QDialog):
         self.table.itemSelectionChanged.connect(self.on_row_selected)
         layout.addWidget(self.table)
 
+        edit_box = QGroupBox(self.t.get("edit_section", "編輯區"))
+        edit_box.setMinimumHeight(180)
+        edit_layout = QVBoxLayout()
+        edit_layout.setContentsMargins(12, 12, 12, 12)
+        edit_layout.setSpacing(10)
+
         form_row = QHBoxLayout()
         form_row.setSpacing(10)
         self.dept_code = QLineEdit()
@@ -73,7 +80,9 @@ class SectionWindow(QDialog):
         ]:
             form_row.addWidget(w)
         form_row.addStretch()
-        layout.addLayout(form_row)
+        edit_layout.addLayout(form_row)
+        edit_box.setLayout(edit_layout)
+        layout.addWidget(edit_box)
 
         self.setLayout(layout)
 
