@@ -76,8 +76,10 @@ class CertifyItemsWindow(QDialog):
         self.dept = QComboBox()
         self.certify_name = QLineEdit()
         self.certify_time = QLineEdit()
-        self.certify_grade = QLineEdit()
-        self.certify_type = QLineEdit()
+        self.certify_grade = QComboBox()
+        self.certify_grade.setEditable(True)
+        self.certify_type = QComboBox()
+        self.certify_type.setEditable(True)
         self.remark = QLineEdit()
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
@@ -130,6 +132,23 @@ class CertifyItemsWindow(QDialog):
             self.dept.addItem(label, row["dept_code"])
         self.dept.blockSignals(False)
 
+        self.certify_grade.blockSignals(True)
+        self.certify_grade.clear()
+        self.certify_grade.addItem("", "")
+        for v in self.dao.list_certify_grades(active_only=True):
+            self.certify_grade.addItem(v, v)
+        self.certify_grade.blockSignals(False)
+
+        self.certify_type.blockSignals(True)
+        self.certify_type.clear()
+        self.certify_type.addItem("", "")
+        for row in self.dao.list_certify_types(active_only=True):
+            label = row.get("certify_type", "")
+            remark = row.get("remark", "")
+            display = f"{label} {remark}".strip()
+            self.certify_type.addItem(display, label)
+        self.certify_type.blockSignals(False)
+
     def load_data(self):
         rows = self.dao.list_certify_items(active_only=self.active_only.isChecked())
         self.table.setRowCount(len(rows))
@@ -150,8 +169,8 @@ class CertifyItemsWindow(QDialog):
         self._set_combo_if_exists(self.dept, values.get("dept", ""))
         self.certify_name.setText(values.get("certify_name", ""))
         self.certify_time.setText(values.get("certify_time", ""))
-        self.certify_grade.setText(values.get("certify_grade", ""))
-        self.certify_type.setText(values.get("certify_type", ""))
+        self._set_combo_if_exists(self.certify_grade, values.get("certify_grade", ""))
+        self._set_combo_if_exists(self.certify_type, values.get("certify_type", ""))
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
@@ -159,6 +178,14 @@ class CertifyItemsWindow(QDialog):
         idx = combo.findData(value)
         if idx >= 0:
             combo.setCurrentIndex(idx)
+        else:
+            combo.setEditText(value)
+
+    def _get_combo_value(self, combo: QComboBox) -> str:
+        data = combo.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        return combo.currentText().strip()
 
     def create_item(self):
         data = self._collect_form()
@@ -188,8 +215,8 @@ class CertifyItemsWindow(QDialog):
             dept=self.dept.currentData() or "",
             certify_name=self.certify_name.text().strip(),
             certify_time=self.certify_time.text().strip(),
-            certify_grade=self.certify_grade.text().strip(),
-            certify_type=self.certify_type.text().strip(),
+            certify_grade=self._get_combo_value(self.certify_grade),
+            certify_type=self._get_combo_value(self.certify_type),
             remark=self.remark.text().strip(),
             active=self.active.isChecked(),
         )

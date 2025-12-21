@@ -19,6 +19,16 @@ class BasicDAO:
         sql = "SELECT l_job, l_job_desc FROM l_job WHERE active = 1 ORDER BY l_job"
         return self.db.fetch_all(sql)
 
+    def list_titles(self) -> List[str]:
+        sql = "SELECT DISTINCT title FROM basic WHERE title IS NOT NULL AND title <> '' ORDER BY title"
+        rows = self.db.fetch_all(sql)
+        return [row.get("title", "") for row in rows if row.get("title")]
+
+    def list_shifts(self) -> List[str]:
+        sql = "SELECT DISTINCT shift FROM basic WHERE shift IS NOT NULL AND shift <> '' ORDER BY shift"
+        rows = self.db.fetch_all(sql)
+        return [row.get("shift", "") for row in rows if row.get("shift")]
+
     # --- Section (Dept) CRUD ---
     def list_all_sections(self) -> List[Dict[str, Any]]:
         sql = "SELECT dept_code, dept_desc, active FROM l_section ORDER BY dept_code"

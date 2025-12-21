@@ -1,6 +1,7 @@
 ﻿import json
 import sys
 from pathlib import Path
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QApplication,
@@ -52,6 +53,7 @@ DEFAULT_CONFIG = {
     "version": "0.1.0",
     "app_name": APP_NAME,
     "theme": "light",
+    "nav_collapsed": False,
 }
 
 
@@ -95,6 +97,9 @@ def load_i18n(lang: str):
 class MainScreen(QMainWindow):
     CARD_WIDTH = 240
     CARD_HEIGHT = 78
+    NAV_EXPANDED_WIDTH = 200
+    NAV_COLLAPSED_WIDTH = 68
+
     def __init__(self, app=None):
         super().__init__()
         self.app = app or QApplication.instance()
@@ -107,6 +112,7 @@ class MainScreen(QMainWindow):
         self.perms = {}
         self.current_user = None
         self.current_theme = self.config.get("theme", "light")
+        self.nav_collapsed = bool(self.config.get("nav_collapsed", False))
 
         if self.app:
             self.app.setApplicationName(self.app_name)
@@ -214,6 +220,15 @@ class MainScreen(QMainWindow):
 
         nav_layout = QVBoxLayout()
         nav_layout.setSpacing(8)
+        nav_layout.setContentsMargins(8, 8, 8, 8)
+        nav_toggle_row = QHBoxLayout()
+        self.nav_toggle = QPushButton()
+        self.nav_toggle.setFixedHeight(30)
+        self.nav_toggle.setProperty("variant", "nav-toggle")
+        self.nav_toggle.clicked.connect(self.toggle_nav)
+        nav_toggle_row.addWidget(self.nav_toggle)
+        nav_toggle_row.addStretch()
+        nav_layout.addLayout(nav_toggle_row)
         self.nav_group = QButtonGroup()
         self.nav_group.setExclusive(True)
         nav_items = [
@@ -226,14 +241,18 @@ class MainScreen(QMainWindow):
             btn = QPushButton(self.translations.get(label_key, label_key))
             btn.setCheckable(True)
             btn.setProperty("variant", "nav")
+            btn.setMinimumHeight(40)
             btn.clicked.connect(lambda _, i=idx: self._set_nav_index(i))
             self.nav_group.addButton(btn, idx)
             self.nav_buttons[key] = btn
             nav_layout.addWidget(btn)
         nav_layout.addStretch()
         nav_widget = QWidget()
+        self.nav_widget = nav_widget
+        self.nav_widget.setObjectName("navPanel")
+        self.nav_widget.setAttribute(Qt.WA_StyledBackground, True)
         nav_widget.setLayout(nav_layout)
-        nav_widget.setFixedWidth(200)
+        nav_widget.setFixedWidth(self.NAV_EXPANDED_WIDTH)
         body_layout.addWidget(nav_widget, 0)
 
         self.page_stack = QStackedWidget()
@@ -254,12 +273,15 @@ class MainScreen(QMainWindow):
         self.status = QStatusBar()
         self.status_label = QLabel()
         self.status_user_label = QLabel()
+        self.status_credit_label = QLabel()
         self.status.addWidget(self.status_label, 1)
         self.status.addPermanentWidget(self.status_user_label, 0)
+        self.status.addPermanentWidget(self.status_credit_label, 0)
         self.setStatusBar(self.status)
         self._update_status_labels()
 
         self._apply_font_sizes()
+        self._apply_nav_texts()
         self._set_nav_index(0)
         self.nav_buttons["employee"].setChecked(True)
 
@@ -388,10 +410,7 @@ class MainScreen(QMainWindow):
         self.footer.setText(t["footer"])
         self.theme_label.setText(t.get("theme_label", "Theme"))
         self._update_theme_button()
-        self.nav_buttons["employee"].setText(t["section_employee"])
-        self.nav_buttons["certify"].setText(t["section_certify"])
-        self.nav_buttons["admin"].setText(t["section_admin"])
-        self.nav_buttons["reports"].setText(t["section_reports"])
+        self._apply_nav_texts()
         self.box_employee.setTitle(t["section_employee"])
         self.box_certify.setTitle(t["section_certify"])
         self.box_admin.setTitle(t["section_admin"])
@@ -516,6 +535,8 @@ class MainScreen(QMainWindow):
         self.theme_toggle.setFont(label_font)
         if hasattr(self, "full_btn"):
             self.full_btn.setFont(label_font)
+        if hasattr(self, "nav_toggle"):
+            self.nav_toggle.setFont(button_font)
         self.box_employee.setFont(group_font)
         self.box_certify.setFont(group_font)
         self.box_admin.setFont(group_font)
@@ -562,13 +583,62 @@ class MainScreen(QMainWindow):
         self.config["theme"] = self.current_theme
         save_config(self.config)
 
+    def toggle_nav(self):
+        self._set_nav_collapsed(not self.nav_collapsed)
+
+    def _apply_nav_texts(self):
+        t = self.translations
+        label_map = {
+            "employee": t["section_employee"],
+            "certify": t["section_certify"],
+            "admin": t["section_admin"],
+            "reports": t["section_reports"],
+        }
+        for key, text in label_map.items():
+            btn = self.nav_buttons.get(key)
+            if not btn:
+                continue
+            btn.setProperty("full_text", text)
+        self._set_nav_collapsed(self.nav_collapsed, persist=False)
+
+    def _set_nav_collapsed(self, collapsed: bool, persist: bool = True):
+        self.nav_collapsed = collapsed
+        if hasattr(self, "nav_widget"):
+            width = self.NAV_COLLAPSED_WIDTH if collapsed else self.NAV_EXPANDED_WIDTH
+            self.nav_widget.setFixedWidth(width)
+        if hasattr(self, "nav_toggle"):
+            if collapsed:
+                label = self.translations.get("nav_expand", ">>")
+            else:
+                label = self.translations.get("nav_collapse", "<<")
+            self.nav_toggle.setText(label)
+        for btn in self.nav_buttons.values():
+            full_text = btn.property("full_text") or btn.text()
+            full_text = str(full_text)
+            if collapsed:
+                short_text = full_text[:1] if full_text else ""
+                btn.setText(short_text)
+                btn.setToolTip(full_text)
+                btn.setProperty("collapsed", True)
+            else:
+                btn.setText(full_text)
+                btn.setToolTip("")
+                btn.setProperty("collapsed", False)
+            btn.style().unpolish(btn)
+            btn.style().polish(btn)
+        if persist:
+            self.config["nav_collapsed"] = self.nav_collapsed
+            save_config(self.config)
+
     def _update_status_labels(self):
         ready = self.translations.get("status_ready", "Ready")
         tpl = self.translations.get("status_user_version", "User: {user} | Version: {version}")
+        credit = self.translations.get("status_credit", "Created by Pigo Hsiao")
         user = self.current_user or "-"
         version = self.app_version
         self.status_label.setText(ready)
         self.status_user_label.setText(tpl.format(user=user, version=version))
+        self.status_credit_label.setText(credit)
 
     def _set_language_from_login(self, lang: str):
         if lang == self.current_lang:

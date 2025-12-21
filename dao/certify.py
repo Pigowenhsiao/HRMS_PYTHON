@@ -20,6 +20,26 @@ class CertifyDAO:
         sql += " ORDER BY certify_id"
         return self.db.fetch_all(sql, params)
 
+    def list_certify_types(self, active_only: bool = True) -> List[Dict[str, Any]]:
+        sql = """
+        SELECT certify_type, remark, active
+        FROM certify_type
+        """
+        params = []
+        if active_only:
+            sql += " WHERE active = 1"
+        sql += " ORDER BY certify_type"
+        return self.db.fetch_all(sql, params)
+
+    def list_certify_grades(self, active_only: bool = True) -> List[str]:
+        sql = "SELECT DISTINCT certify_grade FROM certify_items WHERE certify_grade IS NOT NULL AND certify_grade <> ''"
+        params = []
+        if active_only:
+            sql += " AND active = 1"
+        sql += " ORDER BY certify_grade"
+        rows = self.db.fetch_all(sql, params)
+        return [row.get("certify_grade", "") for row in rows if row.get("certify_grade")]
+
     def create_certify_item(
         self,
         certify_id: str,

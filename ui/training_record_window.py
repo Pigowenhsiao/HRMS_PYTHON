@@ -10,8 +10,10 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QLineEdit,
     QMessageBox,
+    QGroupBox,
+    QDateEdit,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDate
 from ui.window_utils import set_default_window_state, center_table_columns
 
 
@@ -88,13 +90,26 @@ class TrainingRecordWindow(QDialog):
         layout.addWidget(self.table)
 
         # 表單
+        edit_box = QGroupBox(self.t.get("edit_section", "編輯區"))
+        edit_box.setMinimumHeight(180)
+        edit_layout = QVBoxLayout()
+        edit_layout.setContentsMargins(12, 8, 12, 12)
+        edit_layout.setSpacing(8)
+
         form_row1 = QHBoxLayout()
-        form_row1.setSpacing(10)
+        form_row1.setSpacing(8)
         self.emp_cb = QComboBox()
         self.certify_cb = QComboBox()
-        self.certify_date = QLineEdit()
-        self.certify_date.setPlaceholderText(self.t.get("date_placeholder", "YYYY-MM-DD"))
-        self.certify_type = QLineEdit()
+        self.emp_cb.setEditable(True)
+        self.certify_cb.setEditable(True)
+        self.certify_date = QDateEdit()
+        self.certify_date.setCalendarPopup(True)
+        self.certify_date.setDisplayFormat("yyyy-MM-dd")
+        self.certify_date.setMinimumDate(QDate(1900, 1, 1))
+        self.certify_date.setSpecialValueText("")
+        self.certify_date.setDate(QDate.currentDate())
+        self.certify_type = QComboBox()
+        self.certify_type.setEditable(True)
         self.remark = QLineEdit()
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
@@ -103,10 +118,11 @@ class TrainingRecordWindow(QDialog):
         form_row1.addWidget(self.emp_cb)
         form_row1.addWidget(QLabel(self.t.get("col_certify_id", "Certify ID")))
         form_row1.addWidget(self.certify_cb)
-        layout.addLayout(form_row1)
+        form_row1.addStretch()
+        edit_layout.addLayout(form_row1)
 
         form_row2 = QHBoxLayout()
-        form_row2.setSpacing(10)
+        form_row2.setSpacing(8)
         form_row2.addWidget(QLabel(self.t.get("col_certify_date", "Date")))
         form_row2.addWidget(self.certify_date)
         form_row2.addWidget(QLabel(self.t.get("col_certify_type", "Type")))
@@ -114,7 +130,8 @@ class TrainingRecordWindow(QDialog):
         form_row2.addWidget(QLabel(self.t.get("col_remark", "Remark")))
         form_row2.addWidget(self.remark)
         form_row2.addWidget(self.active)
-        layout.addLayout(form_row2)
+        form_row2.addStretch()
+        edit_layout.addLayout(form_row2)
 
         # 按鈕列
         btn_row = QHBoxLayout()
@@ -129,26 +146,37 @@ class TrainingRecordWindow(QDialog):
         btn_row.addWidget(self.update_btn)
         btn_row.addWidget(self.delete_btn)
         btn_row.addStretch()
-        layout.addLayout(btn_row)
+        edit_layout.addLayout(btn_row)
 
         # 狀態提示
         self.status_label = QLabel("")
         self.status_label.setAlignment(Qt.AlignRight)
-        layout.addWidget(self.status_label)
+        edit_layout.addWidget(self.status_label)
+
+        edit_box.setLayout(edit_layout)
+        layout.addWidget(edit_box)
 
         self.setLayout(layout)
 
     def load_filters(self):
         self.emp_cb.blockSignals(True)
         self.certify_cb.blockSignals(True)
+        self.certify_type.blockSignals(True)
         self.emp_cb.clear()
         self.certify_cb.clear()
+        self.certify_type.clear()
         for row in self.basic_dao.list_basic(active_only=True):
             self.emp_cb.addItem(f"{row['emp_id']} {row.get('c_name', '')}", row["emp_id"])
         for row in self.certify_dao.list_certify_items(active_only=True):
             self.certify_cb.addItem(f"{row['certify_id']} {row.get('certify_name', '')}", row["certify_id"])
+        for row in self.certify_dao.list_certify_types(active_only=True):
+            label = row.get("certify_type", "")
+            remark = row.get("remark", "")
+            display = f"{label} {remark}".strip()
+            self.certify_type.addItem(display, label)
         self.emp_cb.blockSignals(False)
         self.certify_cb.blockSignals(False)
+        self.certify_type.blockSignals(False)
 
     def load_data(self):
         rows = self.dao.list_training_records(only_active=self.active_only.isChecked())
@@ -172,8 +200,13 @@ class TrainingRecordWindow(QDialog):
         self.selected_certify_no = values.get("certify_no", "")
         self._set_combo_if_exists(self.emp_cb, values.get("emp_id", ""))
         self._set_combo_if_exists(self.certify_cb, values.get("certify_id", ""))
-        self.certify_date.setText(values.get("certify_date", ""))
-        self.certify_type.setText(values.get("certify_type", ""))
+        raw_date = values.get("certify_date", "")
+        parsed = QDate.fromString(raw_date, "yyyy-MM-dd")
+        if parsed.isValid():
+            self.certify_date.setDate(parsed)
+        else:
+            self.certify_date.setDate(self.certify_date.minimumDate())
+        self._set_combo_if_exists(self.certify_type, values.get("certify_type", ""))
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
@@ -181,13 +214,26 @@ class TrainingRecordWindow(QDialog):
         idx = combo.findData(value)
         if idx >= 0:
             combo.setCurrentIndex(idx)
+        else:
+            combo.setEditText(value)
+
+    def _get_combo_value(self, combo: QComboBox) -> str:
+        data = combo.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        return combo.currentText().strip()
 
     def _collect_form(self):
+        selected_date = self.certify_date.date()
+        if selected_date == self.certify_date.minimumDate():
+            certify_date = ""
+        else:
+            certify_date = selected_date.toString("yyyy-MM-dd")
         return dict(
-            emp_id=self.emp_cb.currentData(),
-            certify_id=self.certify_cb.currentData(),
-            certify_date=self.certify_date.text().strip(),
-            certify_type=self.certify_type.text().strip(),
+            emp_id=self._get_combo_value(self.emp_cb),
+            certify_id=self._get_combo_value(self.certify_cb),
+            certify_date=certify_date,
+            certify_type=self._get_combo_value(self.certify_type),
             remark=self.remark.text().strip(),
             active=self.active.isChecked(),
         )

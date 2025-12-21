@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QComboBox,
     QCheckBox,
     QPushButton,
     QTableWidget,
@@ -80,7 +81,8 @@ class CertifyToolMapWindow(QDialog):
 
         form_row1 = QHBoxLayout()
         form_row1.setSpacing(10)
-        self.certify_id = QLineEdit()
+        self.certify_id = QComboBox()
+        self.certify_id.setEditable(True)
         self.tool_id = QLineEdit()
         form_row1.addWidget(QLabel(self.t.get("col_certify_id", "Certify ID")))
         form_row1.addWidget(self.certify_id)
@@ -117,6 +119,15 @@ class CertifyToolMapWindow(QDialog):
         layout.addWidget(edit_box)
 
         self.setLayout(layout)
+        self._load_certify_ids()
+
+    def _load_certify_ids(self):
+        self.certify_id.blockSignals(True)
+        self.certify_id.clear()
+        for row in self.dao.list_certify_items(active_only=True):
+            label = f"{row['certify_id']} {row.get('certify_name','')}".strip()
+            self.certify_id.addItem(label, row["certify_id"])
+        self.certify_id.blockSignals(False)
 
     def load_data(self):
         rows = self.dao.list_tool_map(
@@ -138,14 +149,27 @@ class CertifyToolMapWindow(QDialog):
             return
         r = items[0].row()
         values = {self.headers[c]: self.table.item(r, c).text() for c in range(len(self.headers))}
-        self.certify_id.setText(values.get("certify_id", ""))
+        self._set_combo_if_exists(self.certify_id, values.get("certify_id", ""))
         self.tool_id.setText(values.get("tool_id", ""))
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
+    def _set_combo_if_exists(self, combo: QComboBox, value: str):
+        idx = combo.findData(value)
+        if idx >= 0:
+            combo.setCurrentIndex(idx)
+        else:
+            combo.setEditText(value)
+
+    def _get_combo_value(self, combo: QComboBox) -> str:
+        data = combo.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        return combo.currentText().strip()
+
     def _collect_form(self):
         return dict(
-            certify_id=self.certify_id.text().strip(),
+            certify_id=self._get_combo_value(self.certify_id),
             tool_id=self.tool_id.text().strip(),
             remark=self.remark.text().strip(),
             active=self.active.isChecked(),

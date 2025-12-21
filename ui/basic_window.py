@@ -12,9 +12,35 @@
     QMessageBox,
     QGridLayout,
     QHeaderView,
+    QDateEdit,
+    QCalendarWidget,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDate, QPoint
 from ui.window_utils import set_default_window_state, center_table_columns
+
+
+class PopupDateEdit(QDateEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._calendar = QCalendarWidget(self)
+        self._calendar.setWindowFlags(Qt.Popup)
+        self._calendar.clicked.connect(self._on_date_selected)
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if self._calendar.isVisible():
+            self._calendar.hide()
+            return
+        self._calendar.setSelectedDate(self.date())
+        pos = self.mapToGlobal(QPoint(0, self.height()))
+        self._calendar.move(pos)
+        self._calendar.show()
+        self._calendar.raise_()
+        self._calendar.activateWindow()
+
+    def _on_date_selected(self, date):
+        self.setDate(date)
+        self._calendar.hide()
 
 
 class BasicWindow(QDialog):
@@ -77,9 +103,19 @@ class BasicWindow(QDialog):
         form = QGridLayout()
         form.setHorizontalSpacing(12)
         form.setVerticalSpacing(10)
-        self.emp_id = QLineEdit(); self.dept_code = QComboBox(); self.c_name = QLineEdit(); self.title = QLineEdit()
-        self.on_board_date = QLineEdit(); self.on_board_date.setPlaceholderText(self.t.get("date_placeholder", "YYYY-MM-DD"))
-        self.shift = QLineEdit(); self.area = QComboBox(); self.function = QComboBox(); self.meno = QLineEdit()
+        form.setColumnStretch(0, 0)
+        form.setColumnStretch(1, 1)
+        form.setColumnStretch(2, 0)
+        form.setColumnStretch(3, 1)
+        self.emp_id = QLineEdit(); self.dept_code = QComboBox(); self.c_name = QLineEdit(); self.title = QComboBox()
+        self.title.setEditable(True)
+        self.on_board_date = PopupDateEdit()
+        self.on_board_date.setDisplayFormat("yyyy-MM-dd")
+        self.on_board_date.setMinimumDate(QDate(1900, 1, 1))
+        self.on_board_date.setSpecialValueText("")
+        self.on_board_date.setDate(QDate.currentDate())
+        self.shift = QComboBox(); self.shift.setEditable(True)
+        self.area = QComboBox(); self.function = QComboBox(); self.meno = QLineEdit()
         self.active = QCheckBox(self.t.get("col_active", "Active")); self.active.setChecked(True)
         labels = [
             self.t.get("col_emp_id", "EMP_ID"), self.t.get("col_dept", "Dept"),
@@ -122,6 +158,12 @@ class BasicWindow(QDialog):
         self.dept_code.clear(); [self.dept_code.addItem(f"{r['dept_code']} {r.get('dept_desc','')}", r['dept_code']) for r in self.dao.list_sections()]
         self.area.clear(); [self.area.addItem(f"{r['area']} {r.get('area_desc','')}", r['area']) for r in self.dao.list_areas()]
         self.function.clear(); [self.function.addItem(f"{r['l_job']} {r.get('l_job_desc','')}", r['l_job']) for r in self.dao.list_jobs()]
+        self.title.blockSignals(True); self.title.clear(); self.title.addItem("", "")
+        for v in self.dao.list_titles(): self.title.addItem(v, v)
+        self.title.blockSignals(False)
+        self.shift.blockSignals(True); self.shift.clear(); self.shift.addItem("", "")
+        for v in self.dao.list_shifts(): self.shift.addItem(v, v)
+        self.shift.blockSignals(False)
 
     def load_data(self):
         data = self.dao.list_basic(
@@ -149,22 +191,45 @@ class BasicWindow(QDialog):
         self.emp_id.setText(values.get("emp_id", ""))
         self.dept_code.setCurrentIndex(max(0, self.dept_code.findData(values.get("dept_code", ""))))
         self.c_name.setText(values.get("c_name", ""))
-        self.title.setText(values.get("title", ""))
-        self.on_board_date.setText(values.get("on_board_date", ""))
-        self.shift.setText(values.get("shift", ""))
+        self._set_combo_if_exists(self.title, values.get("title", ""))
+        raw_date = values.get("on_board_date", "")
+        parsed = QDate.fromString(raw_date, "yyyy-MM-dd")
+        if parsed.isValid():
+            self.on_board_date.setDate(parsed)
+        else:
+            self.on_board_date.setDate(self.on_board_date.minimumDate())
+        self._set_combo_if_exists(self.shift, values.get("shift", ""))
         self.area.setCurrentIndex(max(0, self.area.findData(values.get("area", ""))))
         self.function.setCurrentIndex(max(0, self.function.findData(values.get("function", ""))))
         self.meno.setText(values.get("meno", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
+    def _set_combo_if_exists(self, combo: QComboBox, value: str):
+        idx = combo.findData(value)
+        if idx >= 0:
+            combo.setCurrentIndex(idx)
+        else:
+            combo.setEditText(value)
+
+    def _get_combo_value(self, combo: QComboBox) -> str:
+        data = combo.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        return combo.currentText().strip()
+
     def _collect_form(self):
+        selected_date = self.on_board_date.date()
+        if selected_date == self.on_board_date.minimumDate():
+            on_board_date = ""
+        else:
+            on_board_date = selected_date.toString("yyyy-MM-dd")
         return dict(
             emp_id=self.emp_id.text().strip(),
             dept_code=self.dept_code.currentData(),
             c_name=self.c_name.text().strip(),
-            title=self.title.text().strip(),
-            on_board_date=self.on_board_date.text().strip(),
-            shift=self.shift.text().strip(),
+            title=self._get_combo_value(self.title),
+            on_board_date=on_board_date,
+            shift=self._get_combo_value(self.shift),
             area=self.area.currentData(),
             function=self.function.currentData(),
             meno=self.meno.text().strip(),

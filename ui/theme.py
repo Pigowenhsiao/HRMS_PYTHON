@@ -5,17 +5,17 @@ from PyQt5.QtWidgets import QApplication
 
 _THEMES: Dict[str, Dict[str, str]] = {
     "light": {
-        "bg": "#F3F6FB",
+        "bg": "#F7F8FB",
         "card_bg": "#FFFFFF",
         "text": "#1F2A44",
         "muted": "#6B7A99",
-        "accent": "#2F6BFF",
-        "accent_hover": "#2458D6",
-        "accent_pressed": "#1E4EB8",
+        "accent": "#1E6FB8",
+        "accent_hover": "#185FA1",
+        "accent_pressed": "#144F86",
         "accent_text": "#FFFFFF",
-        "border": "#D9E2F2",
-        "header_bg": "#EFF4FF",
-        "grid": "#E6EDF8",
+        "border": "#D7E1F0",
+        "header_bg": "#EEF2F7",
+        "grid": "#E2E9F3",
         "selection": "#CFE0FF",
         "input_bg": "#FFFFFF",
         "status_bg": "#FFFFFF",
@@ -24,15 +24,21 @@ _THEMES: Dict[str, Dict[str, str]] = {
         "ghost_pressed": "#DDE7FB",
         "tooltip_bg": "#1F2A44",
         "tooltip_text": "#FFFFFF",
+        "nav_bg": "#2E3F53",
+        "nav_text": "#E8F0FF",
+        "nav_hover": "#3A4F66",
+        "nav_active_bg": "#1E6FB8",
+        "nav_active_text": "#FFFFFF",
+        "nav_border": "#223244",
     },
     "dark": {
         "bg": "#0E1320",
         "card_bg": "#182238",
         "text": "#E7EEF8",
         "muted": "#A8B3C7",
-        "accent": "#4C7DFF",
-        "accent_hover": "#3A6BF0",
-        "accent_pressed": "#2F5FD8",
+        "accent": "#3E7CC4",
+        "accent_hover": "#346EB1",
+        "accent_pressed": "#2D5F98",
         "accent_text": "#FFFFFF",
         "border": "#2A3854",
         "header_bg": "#22314D",
@@ -45,6 +51,12 @@ _THEMES: Dict[str, Dict[str, str]] = {
         "ghost_pressed": "#15213A",
         "tooltip_bg": "#E7EEF8",
         "tooltip_text": "#0E1320",
+        "nav_bg": "#141B27",
+        "nav_text": "#DCE6F7",
+        "nav_hover": "#1E2837",
+        "nav_active_bg": "#2A6DB1",
+        "nav_active_text": "#FFFFFF",
+        "nav_border": "#0E1520",
     },
 }
 
@@ -104,7 +116,7 @@ def _build_stylesheet(colors: Dict[str, str]) -> str:
     }}
     QPushButton[variant="nav"] {{
         background-color: transparent;
-        color: {colors['text']};
+        color: {colors['nav_text']};
         border: 1px solid transparent;
         border-radius: 10px;
         padding: 8px 12px;
@@ -112,12 +124,32 @@ def _build_stylesheet(colors: Dict[str, str]) -> str:
         font-weight: 600;
     }}
     QPushButton[variant="nav"]:hover {{
-        background-color: {colors['ghost_hover']};
+        background-color: {colors['nav_hover']};
     }}
     QPushButton[variant="nav"]:checked {{
-        background-color: {colors['card_bg']};
-        border: 1px solid {colors['border']};
-        color: {colors['accent']};
+        background-color: {colors['nav_active_bg']};
+        border: 1px solid {colors['nav_active_bg']};
+        color: {colors['nav_active_text']};
+    }}
+    QPushButton[variant="nav"][collapsed="true"] {{
+        text-align: center;
+        padding: 8px 0px;
+    }}
+    QPushButton[variant="nav-toggle"] {{
+        background-color: transparent;
+        color: {colors['nav_text']};
+        border: 1px solid {colors['nav_border']};
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-weight: 600;
+    }}
+    QPushButton[variant="nav-toggle"]:hover {{
+        background-color: {colors['nav_hover']};
+    }}
+    QWidget#navPanel {{
+        background-color: {colors['nav_bg']};
+        border-radius: 12px;
+        padding: 8px;
     }}
     QPushButton[variant="card"] {{
         background-color: {colors['card_bg']};
