@@ -1,0 +1,6 @@
+﻿{
+  "db_path": "./data/hrms.db",
+  "export_path": "./export",
+  "default_lang": "ja",
+  "version": "0.3.2"
+}
