@@ -6,11 +6,13 @@ from PyQt5.QtWidgets import (
     QApplication,
     QComboBox,
     QGroupBox,
-    QGridLayout,
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QButtonGroup,
     QPushButton,
+    QGridLayout,
+    QStackedWidget,
     QStatusBar,
     QVBoxLayout,
     QWidget,
@@ -78,6 +80,8 @@ def load_i18n(lang: str):
 
 
 class MainScreen(QMainWindow):
+    CARD_WIDTH = 240
+    CARD_HEIGHT = 78
     def __init__(self, app=None):
         super().__init__()
         self.app = app or QApplication.instance()
@@ -121,6 +125,30 @@ class MainScreen(QMainWindow):
 
     def _init_ui(self):
         self.buttons = {}
+        self.nav_buttons = {}
+        self.nav_order = ["employee", "certify", "admin", "reports"]
+        self.section_button_keys = {
+            "employee": ["employee_basic", "employee_personal", "employee_education"],
+            "certify": ["certify_items", "certify_tool_map", "certify_record", "certify_overdue"],
+            "admin": ["authority", "sync_mes", "btn_area", "btn_section", "btn_job"],
+            "reports": ["report_training", "report_custom"],
+        }
+        self.perm_map = {
+            "employee_basic": "perm_basic",
+            "employee_personal": "perm_personal",
+            "employee_education": "perm_education",
+            "certify_items": "perm_certify_items",
+            "certify_tool_map": "perm_certify_tool",
+            "certify_record": "perm_training_record",
+            "certify_overdue": "perm_overdue",
+            "authority": "perm_authority",
+            "sync_mes": "perm_export",
+            "btn_area": "perm_area",
+            "btn_section": "perm_section",
+            "btn_job": "perm_job",
+            "report_training": "perm_report_training",
+            "report_custom": "perm_custom_export",
+        }
 
         root = QWidget()
         main_layout = QVBoxLayout()
@@ -168,15 +196,41 @@ class MainScreen(QMainWindow):
         main_layout.addWidget(self.title_label)
         main_layout.addWidget(self.subtitle_label)
 
-        grid = QGridLayout()
-        grid.setSpacing(16)
+        body_layout = QHBoxLayout()
+        body_layout.setSpacing(16)
 
-        grid.addWidget(self._section_employee(), 0, 0)
-        grid.addWidget(self._section_certify(), 0, 1)
-        grid.addWidget(self._section_admin(), 1, 0)
-        grid.addWidget(self._section_reports(), 1, 1)
+        nav_layout = QVBoxLayout()
+        nav_layout.setSpacing(8)
+        self.nav_group = QButtonGroup()
+        self.nav_group.setExclusive(True)
+        nav_items = [
+            ("employee", "section_employee"),
+            ("certify", "section_certify"),
+            ("admin", "section_admin"),
+            ("reports", "section_reports"),
+        ]
+        for idx, (key, label_key) in enumerate(nav_items):
+            btn = QPushButton(self.translations.get(label_key, label_key))
+            btn.setCheckable(True)
+            btn.setProperty("variant", "nav")
+            btn.clicked.connect(lambda _, i=idx: self._set_nav_index(i))
+            self.nav_group.addButton(btn, idx)
+            self.nav_buttons[key] = btn
+            nav_layout.addWidget(btn)
+        nav_layout.addStretch()
+        nav_widget = QWidget()
+        nav_widget.setLayout(nav_layout)
+        nav_widget.setFixedWidth(200)
+        body_layout.addWidget(nav_widget, 0)
 
-        main_layout.addLayout(grid)
+        self.page_stack = QStackedWidget()
+        self.page_stack.addWidget(self._section_employee())
+        self.page_stack.addWidget(self._section_certify())
+        self.page_stack.addWidget(self._section_admin())
+        self.page_stack.addWidget(self._section_reports())
+        body_layout.addWidget(self.page_stack, 1)
+
+        main_layout.addLayout(body_layout)
 
         self.footer = QLabel(self.translations["footer"])
         main_layout.addWidget(self.footer)
@@ -193,9 +247,25 @@ class MainScreen(QMainWindow):
         self._update_status_labels()
 
         self._apply_font_sizes()
+        self._set_nav_index(0)
+        self.nav_buttons["employee"].setChecked(True)
+
+    def _create_card_button(self, key: str, text: str, handler):
+        btn = QPushButton(text)
+        btn.setProperty("variant", "card")
+        btn.setFixedSize(self.CARD_WIDTH, self.CARD_HEIGHT)
+        btn.clicked.connect(handler)
+        self.buttons[key] = btn
+        return btn
 
     def _login_and_apply_permissions(self):
-        dlg = LoginDialog(self.authority_dao, self.translations)
+        dlg = LoginDialog(
+            self.authority_dao,
+            self.translations,
+            current_lang=self.current_lang,
+            lang_loader=load_i18n,
+            on_lang_change=self._set_language_from_login,
+        )
         if dlg.exec_() != dlg.Accepted:
             return False
         self.current_user = dlg.account
@@ -206,74 +276,87 @@ class MainScreen(QMainWindow):
 
     def _section_employee(self):
         self.box_employee = QGroupBox(self.translations["section_employee"])
-        layout = QVBoxLayout()
-        layout.setSpacing(10)
-        self.buttons["employee_basic"] = QPushButton(self.translations["employee_basic"])
-        self.buttons["employee_personal"] = QPushButton(self.translations["employee_personal"])
-        self.buttons["employee_education"] = QPushButton(self.translations["employee_education"])
-        self.buttons["employee_basic"].clicked.connect(self.open_basic_window)
-        self.buttons["employee_personal"].clicked.connect(self.open_personal_window)
-        self.buttons["employee_education"].clicked.connect(self.open_education_window)
-        for btn in self.buttons.values():
-            btn.setMinimumHeight(38)
-        layout.addWidget(self.buttons["employee_basic"])
-        layout.addWidget(self.buttons["employee_personal"])
-        layout.addWidget(self.buttons["employee_education"])
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(18)
+        layout.setVerticalSpacing(18)
+        layout.setContentsMargins(14, 18, 14, 18)
+        btn_basic = self._create_card_button("employee_basic", self.translations["employee_basic"], self.open_basic_window)
+        btn_personal = self._create_card_button(
+            "employee_personal", self.translations["employee_personal"], self.open_personal_window
+        )
+        btn_education = self._create_card_button(
+            "employee_education", self.translations["employee_education"], self.open_education_window
+        )
+        layout.addWidget(btn_basic, 0, 0)
+        layout.addWidget(btn_personal, 0, 1)
+        layout.addWidget(btn_education, 1, 0)
+        layout.setRowStretch(2, 1)
+        layout.setColumnStretch(2, 1)
         self.box_employee.setLayout(layout)
         return self.box_employee
 
     def _section_certify(self):
         self.box_certify = QGroupBox(self.translations["section_certify"])
-        layout = QVBoxLayout()
-        layout.setSpacing(10)
-        self.buttons["certify_items"] = QPushButton(self.translations["certify_items"])
-        self.buttons["certify_tool_map"] = QPushButton(self.translations["certify_tool_map"])
-        self.buttons["certify_record"] = QPushButton(self.translations["certify_record"])
-        self.buttons["certify_overdue"] = QPushButton(self.translations["certify_overdue"])
-        self.buttons["certify_items"].clicked.connect(self.open_certify_items)
-        self.buttons["certify_tool_map"].clicked.connect(self.open_certify_tool_map)
-        self.buttons["certify_record"].clicked.connect(self.open_training_records)
-        self.buttons["certify_overdue"].clicked.connect(self.open_overdue_window)
-        for key in ["certify_items", "certify_tool_map", "certify_record", "certify_overdue"]:
-            self.buttons[key].setMinimumHeight(38)
-            layout.addWidget(self.buttons[key])
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(18)
+        layout.setVerticalSpacing(18)
+        layout.setContentsMargins(14, 18, 14, 18)
+        btn_items = self._create_card_button("certify_items", self.translations["certify_items"], self.open_certify_items)
+        btn_map = self._create_card_button(
+            "certify_tool_map", self.translations["certify_tool_map"], self.open_certify_tool_map
+        )
+        btn_record = self._create_card_button(
+            "certify_record", self.translations["certify_record"], self.open_training_records
+        )
+        btn_overdue = self._create_card_button(
+            "certify_overdue", self.translations["certify_overdue"], self.open_overdue_window
+        )
+        layout.addWidget(btn_items, 0, 0)
+        layout.addWidget(btn_map, 0, 1)
+        layout.addWidget(btn_record, 1, 0)
+        layout.addWidget(btn_overdue, 1, 1)
+        layout.setRowStretch(2, 1)
+        layout.setColumnStretch(2, 1)
         self.box_certify.setLayout(layout)
         return self.box_certify
 
     def _section_admin(self):
         self.box_admin = QGroupBox(self.translations["section_admin"])
-        layout = QVBoxLayout()
-        layout.setSpacing(10)
-        self.buttons["authority"] = QPushButton(self.translations["authority"])
-        self.buttons["sync_mes"] = QPushButton(self.translations["sync_mes"])
-        self.buttons["btn_area"] = QPushButton(self.translations.get("btn_area", "區域維護"))
-        self.buttons["btn_section"] = QPushButton(self.translations.get("btn_section", "部門維護"))
-        self.buttons["btn_job"] = QPushButton(self.translations.get("btn_job", "職務/Function"))
-        self.buttons["sync_mes"].clicked.connect(self.export_training_csv)
-        self.buttons["authority"].clicked.connect(self.open_authority_window)
-        self.buttons["btn_area"].clicked.connect(self.open_area_window)
-        self.buttons["btn_section"].clicked.connect(self.open_section_window)
-        self.buttons["btn_job"].clicked.connect(self.open_job_window)
-        for key in ["authority", "sync_mes"]:
-            self.buttons[key].setMinimumHeight(38)
-            layout.addWidget(self.buttons[key])
-        for key in ["btn_area", "btn_section", "btn_job"]:
-            self.buttons[key].setMinimumHeight(36)
-            layout.addWidget(self.buttons[key])
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(18)
+        layout.setVerticalSpacing(18)
+        layout.setContentsMargins(14, 18, 14, 18)
+        btn_auth = self._create_card_button("authority", self.translations["authority"], self.open_authority_window)
+        btn_sync = self._create_card_button("sync_mes", self.translations["sync_mes"], self.export_training_csv)
+        btn_area = self._create_card_button("btn_area", self.translations.get("btn_area", "區域維護"), self.open_area_window)
+        btn_section = self._create_card_button(
+            "btn_section", self.translations.get("btn_section", "部門維護"), self.open_section_window
+        )
+        btn_job = self._create_card_button("btn_job", self.translations.get("btn_job", "職務/Function"), self.open_job_window)
+        layout.addWidget(btn_auth, 0, 0)
+        layout.addWidget(btn_sync, 0, 1)
+        layout.addWidget(btn_area, 1, 0)
+        layout.addWidget(btn_section, 1, 1)
+        layout.addWidget(btn_job, 2, 0, 1, 2)
+        layout.setRowStretch(3, 1)
+        layout.setColumnStretch(2, 1)
         self.box_admin.setLayout(layout)
         return self.box_admin
 
     def _section_reports(self):
         self.box_reports = QGroupBox(self.translations["section_reports"])
-        layout = QVBoxLayout()
-        layout.setSpacing(10)
-        self.buttons["report_training"] = QPushButton(self.translations["report_training"])
-        self.buttons["report_custom"] = QPushButton(self.translations["report_custom"])
-        self.buttons["report_training"].clicked.connect(self.open_training_report)
-        self.buttons["report_custom"].clicked.connect(self.open_custom_export)
-        for key in ["report_training", "report_custom"]:
-            self.buttons[key].setMinimumHeight(38)
-            layout.addWidget(self.buttons[key])
+        layout = QGridLayout()
+        layout.setHorizontalSpacing(18)
+        layout.setVerticalSpacing(18)
+        layout.setContentsMargins(14, 18, 14, 18)
+        btn_training = self._create_card_button(
+            "report_training", self.translations["report_training"], self.open_training_report
+        )
+        btn_custom = self._create_card_button("report_custom", self.translations["report_custom"], self.open_custom_export)
+        layout.addWidget(btn_training, 0, 0)
+        layout.addWidget(btn_custom, 0, 1)
+        layout.setRowStretch(1, 1)
+        layout.setColumnStretch(2, 1)
         self.box_reports.setLayout(layout)
         return self.box_reports
 
@@ -292,6 +375,10 @@ class MainScreen(QMainWindow):
         self.footer.setText(t["footer"])
         self.theme_label.setText(t.get("theme_label", "Theme"))
         self._update_theme_button()
+        self.nav_buttons["employee"].setText(t["section_employee"])
+        self.nav_buttons["certify"].setText(t["section_certify"])
+        self.nav_buttons["admin"].setText(t["section_admin"])
+        self.nav_buttons["reports"].setText(t["section_reports"])
         self.box_employee.setTitle(t["section_employee"])
         self.box_certify.setTitle(t["section_certify"])
         self.box_admin.setTitle(t["section_admin"])
@@ -422,6 +509,8 @@ class MainScreen(QMainWindow):
         self.box_reports.setFont(group_font)
         for btn in self.buttons.values():
             btn.setFont(button_font)
+        for btn in self.nav_buttons.values():
+            btn.setFont(button_font)
         self.footer.setFont(footer_font)
         self.status.setFont(status_font)
         self.status_label.setFont(status_font)
@@ -468,28 +557,46 @@ class MainScreen(QMainWindow):
         self.status_label.setText(ready)
         self.status_user_label.setText(tpl.format(user=user, version=version))
 
+    def _set_language_from_login(self, lang: str):
+        if lang == self.current_lang:
+            return
+        self.current_lang = lang
+        self.translations = load_i18n(lang)
+        self.config["default_lang"] = lang
+        save_config(self.config)
+        self._apply_translation()
+
     def _apply_permissions(self):
         if not hasattr(self, "perms"):
             return
-        perm_map = {
-            "employee_basic": "perm_basic",
-            "employee_personal": "perm_personal",
-            "employee_education": "perm_education",
-            "certify_items": "perm_certify_items",
-            "certify_tool_map": "perm_certify_tool",
-            "certify_record": "perm_training_record",
-            "certify_overdue": "perm_overdue",
-            "authority": "perm_authority",
-            "sync_mes": "perm_export",
-            "btn_area": "perm_area",
-            "btn_section": "perm_section",
-            "btn_job": "perm_job",
-            "report_training": "perm_report_training",
-            "report_custom": "perm_custom_export",
-        }
-        for btn_key, perm_key in perm_map.items():
+        for btn_key, perm_key in self.perm_map.items():
             if btn_key in self.buttons:
                 self.buttons[btn_key].setVisible(bool(self.perms.get(perm_key, False)))
+        self._update_nav_visibility()
+
+    def _set_nav_index(self, index: int):
+        self.page_stack.setCurrentIndex(index)
+
+    def _update_nav_visibility(self):
+        visible_sections = []
+        perms_empty = not bool(self.perms)
+        for section_key in self.nav_order:
+            button_keys = self.section_button_keys.get(section_key, [])
+            if perms_empty:
+                visible = True
+            else:
+                visible = any(self.perms.get(self.perm_map.get(k, ""), False) for k in button_keys)
+            self.nav_buttons[section_key].setVisible(visible)
+            if visible:
+                visible_sections.append(section_key)
+
+        if not visible_sections:
+            return
+        current_key = self.nav_order[self.page_stack.currentIndex()]
+        if not self.nav_buttons[current_key].isVisible():
+            first_key = visible_sections[0]
+            self.nav_buttons[first_key].setChecked(True)
+            self.page_stack.setCurrentIndex(self.nav_order.index(first_key))
 
 
 if __name__ == "__main__":

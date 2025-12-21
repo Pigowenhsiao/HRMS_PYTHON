@@ -15,3 +15,11 @@ def set_default_window_state(window):
     apply_window_controls(window)
     window.setWindowState(window.windowState() | Qt.WindowMaximized)
     window.setAttribute(Qt.WA_StyledBackground, True)
+
+
+def center_table_columns(table, columns):
+    for row in range(table.rowCount()):
+        for col in columns:
+            item = table.item(row, col)
+            if item:
+                item.setTextAlignment(Qt.AlignCenter)

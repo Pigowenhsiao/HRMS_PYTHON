@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class CertifyToolMapWindow(QDialog):
@@ -27,9 +27,12 @@ class CertifyToolMapWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         # 篩選列
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         self.certify_filter = QLineEdit()
         self.certify_filter.setPlaceholderText(self.t.get("col_certify_id", "Certify ID"))
         self.tool_filter = QLineEdit()
@@ -69,6 +72,7 @@ class CertifyToolMapWindow(QDialog):
 
         # 表單
         form_row1 = QHBoxLayout()
+        form_row1.setSpacing(10)
         self.certify_id = QLineEdit()
         self.tool_id = QLineEdit()
         form_row1.addWidget(QLabel(self.t.get("col_certify_id", "Certify ID")))
@@ -78,6 +82,7 @@ class CertifyToolMapWindow(QDialog):
         layout.addLayout(form_row1)
 
         form_row2 = QHBoxLayout()
+        form_row2.setSpacing(10)
         self.remark = QLineEdit()
         self.active = QCheckBox(self.t.get("active", "Active"))
         self.active.setChecked(True)
@@ -88,6 +93,7 @@ class CertifyToolMapWindow(QDialog):
         layout.addLayout(form_row2)
 
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
         self.create_btn = QPushButton(self.t.get("create", "Create"))
         self.update_btn = QPushButton(self.t.get("update", "Update"))
         self.delete_btn = QPushButton(self.t.get("delete", "Delete"))
@@ -114,6 +120,7 @@ class CertifyToolMapWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [len(self.headers) - 1])
 
     def on_row_selected(self):
         items = self.table.selectedItems()
@@ -147,7 +154,7 @@ class CertifyToolMapWindow(QDialog):
             self.dao.create_tool_map(**data)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def update_mapping(self):
         data = self._collect_form()
@@ -162,7 +169,7 @@ class CertifyToolMapWindow(QDialog):
             self.dao.update_tool_map(**data)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def delete_mapping(self):
         cid = self.certify_id.text().strip()
@@ -178,4 +185,4 @@ class CertifyToolMapWindow(QDialog):
             self.dao.delete_tool_map(cid, tid)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

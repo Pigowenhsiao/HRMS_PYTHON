@@ -23,14 +23,18 @@ class EducationWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         # Filters
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         self.active_only = QCheckBox(self._label("only_active", "Only Active"))
         self.active_only.setChecked(True)
-        self.education_cb = QComboBox(); self.education_cb.addItem("ALL", "")
-        self.school_cb = QComboBox(); self.school_cb.addItem("ALL", "")
-        self.major_cb = QComboBox(); self.major_cb.addItem("ALL", "")
+        all_label = self._label("filter_all", "ALL")
+        self.education_cb = QComboBox(); self.education_cb.addItem(all_label, "")
+        self.school_cb = QComboBox(); self.school_cb.addItem(all_label, "")
+        self.major_cb = QComboBox(); self.major_cb.addItem(all_label, "")
         self.refresh_btn = QPushButton(self._label("refresh", "Refresh"))
         self.refresh_btn.clicked.connect(self.load_data)
         self.filter_edu_btn = QPushButton(self._label("filter_edu", "Filter by Education"))
@@ -73,6 +77,7 @@ class EducationWindow(QDialog):
 
         # Form
         form_row = QHBoxLayout()
+        form_row.setSpacing(10)
         self.emp_input = QLineEdit(); self.emp_input.setPlaceholderText(self._label("col_emp_id","EMP_ID"))
         self.edu_input = QLineEdit(); self.school_input = QLineEdit(); self.major_input = QLineEdit()
         self.update_btn = QPushButton(self._label("update", "Update")); self.update_btn.clicked.connect(self.update_record)
@@ -91,7 +96,8 @@ class EducationWindow(QDialog):
     def load_filters(self):
         self.education_cb.blockSignals(True); self.school_cb.blockSignals(True); self.major_cb.blockSignals(True)
         self.education_cb.clear(); self.school_cb.clear(); self.major_cb.clear()
-        self.education_cb.addItem("ALL", ""); self.school_cb.addItem("ALL", ""); self.major_cb.addItem("ALL", "")
+        all_label = self._label("filter_all", "ALL")
+        self.education_cb.addItem(all_label, ""); self.school_cb.addItem(all_label, ""); self.major_cb.addItem(all_label, "")
         for v in self.dao.list_distinct("education"): self.education_cb.addItem(v, v)
         for v in self.dao.list_distinct("g_school"): self.school_cb.addItem(v, v)
         for v in self.dao.list_distinct("major"): self.major_cb.addItem(v, v)
@@ -135,7 +141,11 @@ class EducationWindow(QDialog):
     def update_record(self):
         emp = self.emp_input.text().strip()
         if not emp:
-            QMessageBox.warning(self, "Warn", self._label("col_emp_id", "EMP_ID") + " 必填")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_emp_required", "EMP_ID 必填"),
+            )
             return
         try:
             self.dao.upsert_education(
@@ -146,4 +156,4 @@ class EducationWindow(QDialog):
             )
             self.load_filters(); self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

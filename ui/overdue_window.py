@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class OverdueWindow(QDialog):
@@ -25,8 +25,11 @@ class OverdueWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         filter_row.addWidget(QLabel(self.t.get("overdue_days_label", "逾期天數大於等於")))
         self.days_input = QLineEdit()
         self.days_input.setPlaceholderText(self.t.get("overdue_days_placeholder", "天數，例如 660"))
@@ -71,3 +74,4 @@ class OverdueWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [len(self.headers) - 1])

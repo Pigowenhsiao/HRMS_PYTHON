@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class SectionWindow(QDialog):
@@ -28,6 +28,8 @@ class SectionWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         self.headers = ["dept_code", "dept_desc", "active"]
         header_labels = [
@@ -46,6 +48,7 @@ class SectionWindow(QDialog):
         layout.addWidget(self.table)
 
         form_row = QHBoxLayout()
+        form_row.setSpacing(10)
         self.dept_code = QLineEdit()
         self.dept_code.setPlaceholderText(self.t.get("col_dept_code", "Dept Code"))
         self.dept_desc = QLineEdit()
@@ -82,6 +85,7 @@ class SectionWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [2])
 
     def on_row_selected(self):
         items = self.table.selectedItems()
@@ -102,7 +106,7 @@ class SectionWindow(QDialog):
             self.dao.create_section(self.dept_code.text().strip(), self.dept_desc.text().strip(), self.active.isChecked())
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def update_record(self):
         if not self.dept_code.text().strip():
@@ -114,7 +118,7 @@ class SectionWindow(QDialog):
             self.dao.update_section(self.dept_code.text().strip(), self.dept_desc.text().strip(), self.active.isChecked())
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def delete_record(self):
         if not self.dept_code.text().strip():
@@ -126,4 +130,4 @@ class SectionWindow(QDialog):
             self.dao.delete_section(self.dept_code.text().strip())
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

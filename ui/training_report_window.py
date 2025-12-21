@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class TrainingReportWindow(QDialog):
@@ -30,8 +30,11 @@ class TrainingReportWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         filter_row.addWidget(QLabel(self.t.get("col_dept", "Dept")))
         self.dept_cb = QComboBox()
         filter_row.addWidget(self.dept_cb)
@@ -96,6 +99,7 @@ class TrainingReportWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [len(self.headers) - 1])
 
     def export_csv(self):
         try:

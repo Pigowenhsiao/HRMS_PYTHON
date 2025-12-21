@@ -102,6 +102,38 @@ def _build_stylesheet(colors: Dict[str, str]) -> str:
     QPushButton[variant="ghost"]:pressed {{
         background-color: {colors['ghost_pressed']};
     }}
+    QPushButton[variant="nav"] {{
+        background-color: transparent;
+        color: {colors['text']};
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 8px 12px;
+        text-align: left;
+        font-weight: 600;
+    }}
+    QPushButton[variant="nav"]:hover {{
+        background-color: {colors['ghost_hover']};
+    }}
+    QPushButton[variant="nav"]:checked {{
+        background-color: {colors['card_bg']};
+        border: 1px solid {colors['border']};
+        color: {colors['accent']};
+    }}
+    QPushButton[variant="card"] {{
+        background-color: {colors['card_bg']};
+        color: {colors['text']};
+        border: 1px solid {colors['border']};
+        border-radius: 14px;
+        padding: 10px 12px;
+        font-weight: 600;
+    }}
+    QPushButton[variant="card"]:hover {{
+        border: 1px solid {colors['accent']};
+        background-color: {colors['header_bg']};
+    }}
+    QPushButton[variant="card"]:pressed {{
+        background-color: {colors['ghost_pressed']};
+    }}
     QLineEdit, QComboBox, QDateEdit, QTextEdit {{
         background-color: {colors['input_bg']};
         border: 1px solid {colors['border']};

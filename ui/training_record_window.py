@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class TrainingRecordWindow(QDialog):
@@ -32,9 +32,12 @@ class TrainingRecordWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         # 篩選列
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         self.active_only = QCheckBox(self.t.get("only_active", "Only Active"))
         self.active_only.setChecked(True)
         self.refresh_btn = QPushButton(self.t.get("refresh", "Refresh"))
@@ -86,10 +89,11 @@ class TrainingRecordWindow(QDialog):
 
         # 表單
         form_row1 = QHBoxLayout()
+        form_row1.setSpacing(10)
         self.emp_cb = QComboBox()
         self.certify_cb = QComboBox()
         self.certify_date = QLineEdit()
-        self.certify_date.setPlaceholderText("YYYY-MM-DD")
+        self.certify_date.setPlaceholderText(self.t.get("date_placeholder", "YYYY-MM-DD"))
         self.certify_type = QLineEdit()
         self.remark = QLineEdit()
         self.active = QCheckBox(self.t.get("active", "Active"))
@@ -102,6 +106,7 @@ class TrainingRecordWindow(QDialog):
         layout.addLayout(form_row1)
 
         form_row2 = QHBoxLayout()
+        form_row2.setSpacing(10)
         form_row2.addWidget(QLabel(self.t.get("col_certify_date", "Date")))
         form_row2.addWidget(self.certify_date)
         form_row2.addWidget(QLabel(self.t.get("col_certify_type", "Type")))
@@ -113,6 +118,7 @@ class TrainingRecordWindow(QDialog):
 
         # 按鈕列
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
         self.create_btn = QPushButton(self.t.get("create", "Create"))
         self.update_btn = QPushButton(self.t.get("update", "Update"))
         self.delete_btn = QPushButton(self.t.get("delete", "Delete"))
@@ -152,6 +158,7 @@ class TrainingRecordWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [len(self.headers) - 1])
         # 隱藏流水號欄位
         self.table.setColumnHidden(0, True)
         self.selected_certify_no = None
@@ -228,7 +235,7 @@ class TrainingRecordWindow(QDialog):
                 self._show_status(self.t.get("msg_create_success", "新增成功"))
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def update_record(self):
         data = self._collect_form()
@@ -248,7 +255,7 @@ class TrainingRecordWindow(QDialog):
             )
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def delete_record(self):
         if not self.selected_certify_no:
@@ -258,7 +265,7 @@ class TrainingRecordWindow(QDialog):
             self.dao.delete_training_record(int(self.selected_certify_no))
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def export_csv(self):
         path = self.dao.export_training_records(

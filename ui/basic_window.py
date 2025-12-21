@@ -14,7 +14,7 @@
     QHeaderView,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class BasicWindow(QDialog):
@@ -31,9 +31,12 @@ class BasicWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         # Filter row
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         self.emp_filter = QLineEdit()
         self.emp_filter.setPlaceholderText(self.t.get("col_emp_id", "EMP_ID"))
         self.dept_filter = QComboBox(); self.dept_filter.addItem("ALL", "")
@@ -72,8 +75,10 @@ class BasicWindow(QDialog):
 
         # Form
         form = QGridLayout()
+        form.setHorizontalSpacing(12)
+        form.setVerticalSpacing(10)
         self.emp_id = QLineEdit(); self.dept_code = QComboBox(); self.c_name = QLineEdit(); self.title = QLineEdit()
-        self.on_board_date = QLineEdit(); self.on_board_date.setPlaceholderText("YYYY-MM-DD")
+        self.on_board_date = QLineEdit(); self.on_board_date.setPlaceholderText(self.t.get("date_placeholder", "YYYY-MM-DD"))
         self.shift = QLineEdit(); self.area = QComboBox(); self.function = QComboBox(); self.meno = QLineEdit()
         self.active = QCheckBox(self.t.get("col_active", "Active")); self.active.setChecked(True)
         labels = [
@@ -90,6 +95,7 @@ class BasicWindow(QDialog):
 
         # Buttons
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
         self.btn_create = QPushButton(self.t.get("create", "Create")); self.btn_update = QPushButton(self.t.get("update", "Update")); self.btn_delete = QPushButton(self.t.get("delete", "Delete"))
         self.btn_create.clicked.connect(self.create_record); self.btn_update.clicked.connect(self.update_record); self.btn_delete.clicked.connect(self.delete_record)
         for b in [self.btn_create, self.btn_update, self.btn_delete]: btn_row.addWidget(b)
@@ -132,6 +138,8 @@ class BasicWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r, c, item)
+        active_idx = field_order.index("active")
+        center_table_columns(self.table, [active_idx])
 
     def on_row_selected(self):
         items = self.table.selectedItems();
@@ -166,32 +174,44 @@ class BasicWindow(QDialog):
     def create_record(self):
         data = self._collect_form()
         if not data["emp_id"] or not data["dept_code"] or not data["c_name"]:
-            QMessageBox.warning(self, "Warn", "EMP_ID / Dept / Name 必填")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_basic_fields", "EMP_ID / Dept / Name 必填"),
+            )
             return
         try:
             self.dao.create_basic(**data)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def update_record(self):
         data = self._collect_form()
         if not data["emp_id"]:
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入 EMP_ID")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_emp_select", "請先選擇或輸入 EMP_ID"),
+            )
             return
         try:
             self.dao.update_basic(**data)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def delete_record(self):
         emp = self.emp_id.text().strip()
         if not emp:
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入 EMP_ID")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_required_emp_select", "請先選擇或輸入 EMP_ID"),
+            )
             return
         try:
             self.dao.delete_basic(emp)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

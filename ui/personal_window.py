@@ -33,9 +33,12 @@ class PersonalWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         # EMP selector
         top_row = QHBoxLayout()
+        top_row.setSpacing(10)
         top_row.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")))
         self.emp_combo = QComboBox()
         self.emp_combo.currentIndexChanged.connect(self.load_person_info)
@@ -44,9 +47,11 @@ class PersonalWindow(QDialog):
         layout.addLayout(top_row)
 
         form = QGridLayout()
+        form.setHorizontalSpacing(12)
+        form.setVerticalSpacing(10)
 
         self.sex = QComboBox(); self.sex.addItems(["M", "F"])
-        self.birthday = QLineEdit(); self.birthday.setPlaceholderText("YYYY-MM-DD")
+        self.birthday = QLineEdit(); self.birthday.setPlaceholderText(self._label("date_placeholder", "YYYY-MM-DD"))
         self.personal_id = QLineEdit()
         self.home_phone = QLineEdit()
         self.current_phone = QLineEdit()
@@ -87,6 +92,7 @@ class PersonalWindow(QDialog):
         layout.addLayout(form)
 
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
         self.save_btn = QPushButton(self.t.get("update", "Update"))
         self.save_btn.clicked.connect(self.save_info)
         btn_row.addWidget(self.save_btn)
@@ -131,7 +137,11 @@ class PersonalWindow(QDialog):
     def save_info(self):
         emp_id = self.emp_combo.currentData()
         if not emp_id:
-            QMessageBox.warning(self, "Warn", self._label("col_emp_id", "EMP_ID") + " 必填")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_emp_required", "EMP_ID 必填"),
+            )
             return
         try:
             self.dao.update_person_info(
@@ -157,6 +167,10 @@ class PersonalWindow(QDialog):
                 active=self.active.isChecked(),
                 updater="",
             )
-            QMessageBox.information(self, "OK", self.t.get("update", "Update") + " 完成")
+            QMessageBox.information(
+                self,
+                self.t.get("info", "Info"),
+                self.t.get("msg_update_done", "更新完成"),
+            )
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

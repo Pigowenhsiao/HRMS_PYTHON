@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QGridLayout,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class CertifyItemsWindow(QDialog):
@@ -31,9 +31,12 @@ class CertifyItemsWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         # 篩選
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         self.active_only = QCheckBox(self.t.get("only_active", "Only Active"))
         self.active_only.setChecked(True)
         self.refresh_btn = QPushButton(self.t.get("refresh", "Refresh"))
@@ -67,6 +70,8 @@ class CertifyItemsWindow(QDialog):
 
         # 表單
         form = QGridLayout()
+        form.setHorizontalSpacing(12)
+        form.setVerticalSpacing(10)
         self.certify_id = QLineEdit()
         self.dept = QComboBox()
         self.certify_name = QLineEdit()
@@ -104,6 +109,7 @@ class CertifyItemsWindow(QDialog):
 
         # 按鈕
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
         self.create_btn = QPushButton(self.t.get("create", "Create"))
         self.update_btn = QPushButton(self.t.get("update", "Update"))
         self.create_btn.clicked.connect(self.create_item)
@@ -132,6 +138,7 @@ class CertifyItemsWindow(QDialog):
                 item = QTableWidgetItem(str(row.get(key, "")))
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 self.table.setItem(r_idx, c_idx, item)
+        center_table_columns(self.table, [len(self.headers) - 1])
 
     def on_row_selected(self):
         items = self.table.selectedItems()
@@ -162,7 +169,7 @@ class CertifyItemsWindow(QDialog):
             self.dao.create_certify_item(**data)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def update_item(self):
         data = self._collect_form()
@@ -173,7 +180,7 @@ class CertifyItemsWindow(QDialog):
             self.dao.update_certify_item(**data)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def _collect_form(self):
         return dict(

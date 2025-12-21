@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
+    QGridLayout,
     QLabel,
     QCheckBox,
     QPushButton,
@@ -11,7 +12,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class AuthorityWindow(QDialog):
@@ -27,6 +28,8 @@ class AuthorityWindow(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         filter_row = QHBoxLayout()
         self.active_only = QCheckBox(self.t.get("only_active", "Only Active"))
@@ -73,9 +76,9 @@ class AuthorityWindow(QDialog):
         form_col = QVBoxLayout()
         row1 = QHBoxLayout()
         self.account_input = QLineEdit()
-        self.account_input.setPlaceholderText("帳號")
+        self.account_input.setPlaceholderText(self.t.get("placeholder_account", "帳號"))
         self.pwd_input = QLineEdit()
-        self.pwd_input.setPlaceholderText("密碼（留空不變更）")
+        self.pwd_input.setPlaceholderText(self.t.get("placeholder_password_keep", "密碼（留空不變更）"))
         self.pwd_input.setEchoMode(QLineEdit.Password)
         row1.addWidget(QLabel(self.t.get("col_s_account", "帳號")))
         row1.addWidget(self.account_input)
@@ -85,13 +88,16 @@ class AuthorityWindow(QDialog):
 
         # permissions checklist
         self.perm_boxes = {}
-        perm_row = QHBoxLayout()
-        for key, label_key in self.perm_keys:
+        perm_grid = QGridLayout()
+        perm_grid.setHorizontalSpacing(12)
+        perm_grid.setVerticalSpacing(8)
+        columns = 4
+        for idx, (key, label_key) in enumerate(self.perm_keys):
             cb = QCheckBox(self.t.get(label_key, label_key))
             cb.setChecked(True)
             self.perm_boxes[key] = cb
-            perm_row.addWidget(cb)
-        form_col.addLayout(perm_row)
+            perm_grid.addWidget(cb, idx // columns, idx % columns)
+        form_col.addLayout(perm_grid)
 
         form_row2 = QHBoxLayout()
         self.active = QCheckBox(self.t.get("active", "Active"))
@@ -124,7 +130,10 @@ class AuthorityWindow(QDialog):
                 item = QTableWidgetItem("")
                 item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
                 item.setCheckState(Qt.Checked if str(row.get(perm_key, "0")) in ("1", "True", "true") else Qt.Unchecked)
+                item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(r_idx, col, item)
+        perm_cols = list(range(3, 3 + len(self.perm_keys)))
+        center_table_columns(self.table, [1] + perm_cols)
 
     def on_row_selected(self):
         items = self.table.selectedItems()
@@ -148,7 +157,9 @@ class AuthorityWindow(QDialog):
     def create_account(self):
         acc = self.account_input.text().strip()
         if not acc:
-            QMessageBox.warning(self, "Warn", "請輸入帳號")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_account_required", "請輸入帳號")
+            )
             return
         try:
             perms = {k: cb.isChecked() for k, cb in self.perm_boxes.items()}
@@ -159,12 +170,14 @@ class AuthorityWindow(QDialog):
             self.dao.create_account(acc, pwd_hash, self.active.isChecked(), perms)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
 
     def update_account(self):
         acc = self.account_input.text().strip()
         if not acc:
-            QMessageBox.warning(self, "Warn", "請先選擇或輸入帳號")
+            QMessageBox.warning(
+                self, self.t.get("warn", "Warn"), self.t.get("msg_account_select", "請先選擇或輸入帳號")
+            )
             return
         try:
             perms = {k: cb.isChecked() for k, cb in self.perm_boxes.items()}
@@ -175,4 +188,4 @@ class AuthorityWindow(QDialog):
             self.dao.update_account(acc, pwd_hash, self.active.isChecked(), perms)
             self.load_data()
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, self.t.get("error", "Error"), str(e))
