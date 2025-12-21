@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main_screen.py'],
+    ['HRMS_NEW.py'],
     pathex=[],
     binaries=[],
     datas=[('config.json', '.'), ('i18n', 'i18n'), ('data/hrms.db', 'data')],
@@ -22,7 +22,7 @@ exe = EXE(
     [],
     [],
     [],
-    name='main_screen',
+    name='HRMS_NEW',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -45,7 +45,7 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='main_screen',
+    name='HRMS_NEW',
 )
 
 datas=[

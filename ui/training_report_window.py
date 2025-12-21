@@ -32,12 +32,12 @@ class TrainingReportWindow(QDialog):
         layout = QVBoxLayout()
 
         filter_row = QHBoxLayout()
-        filter_row.addWidget(QLabel("Dept"))
+        filter_row.addWidget(QLabel(self.t.get("col_dept", "Dept")))
         self.dept_cb = QComboBox()
         filter_row.addWidget(self.dept_cb)
         filter_row.addWidget(QLabel(self.t.get("overdue_days_label", "逾期天數大於等於")))
         self.days_input = QLineEdit()
-        self.days_input.setPlaceholderText("天數，例如 660")
+        self.days_input.setPlaceholderText(self.t.get("overdue_days_placeholder", "Days, e.g. 660"))
         self.days_input.setText("0")
         self.refresh_btn = QPushButton(self.t.get("refresh", "Refresh"))
         self.refresh_btn.clicked.connect(self.load_data)
@@ -48,10 +48,29 @@ class TrainingReportWindow(QDialog):
         filter_row.addStretch()
         layout.addLayout(filter_row)
 
-        self.headers = ["emp_id", "c_name", "dept_desc", "certify_id", "certify_name", "certify_date", "overdue_days", "active"]
+        self.headers = [
+            "emp_id",
+            "c_name",
+            "dept_desc",
+            "certify_id",
+            "certify_name",
+            "certify_date",
+            "overdue_days",
+            "active",
+        ]
+        header_labels = [
+            self.t.get("col_emp_id", "emp_id"),
+            self.t.get("col_c_name", "c_name"),
+            self.t.get("col_dept_desc", "dept_desc"),
+            self.t.get("col_certify_id", "certify_id"),
+            self.t.get("col_certify_name", "certify_name"),
+            self.t.get("col_certify_date", "certify_date"),
+            self.t.get("col_overdue_days", "overdue_days"),
+            self.t.get("col_active", "active"),
+        ]
         self.table = QTableWidget()
         self.table.setColumnCount(len(self.headers))
-        self.table.setHorizontalHeaderLabels(self.headers)
+        self.table.setHorizontalHeaderLabels(header_labels)
         self.table.horizontalHeader().setStretchLastSection(True)
         layout.addWidget(self.table)
 
@@ -85,4 +104,5 @@ class TrainingReportWindow(QDialog):
             days = 0
         rows = self.dao.training_by_dept(dept_code=self.dept_cb.currentData(), min_days=days)
         path = self.dao.export_training_by_dept(rows, self.export_dir, "training_report.csv")
-        QMessageBox.information(self, self.t.get("export_csv", "Export CSV"), f"CSV exported to: {path}")
+        msg_tpl = self.t.get("msg_export_csv_done", "CSV exported to: {path}")
+        QMessageBox.information(self, self.t.get("export_csv", "Export CSV"), msg_tpl.format(path=path))

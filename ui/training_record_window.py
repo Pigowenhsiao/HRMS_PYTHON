@@ -264,7 +264,8 @@ class TrainingRecordWindow(QDialog):
         path = self.dao.export_training_records(
             self.export_dir, "training_export.csv", only_active=self.active_only.isChecked()
         )
-        QMessageBox.information(self, self.t.get("export_csv", "Export CSV"), f"CSV exported to: {path}")
+        msg_tpl = self.t.get("msg_export_csv_done", "CSV exported to: {path}")
+        QMessageBox.information(self, self.t.get("export_csv", "Export CSV"), msg_tpl.format(path=path))
 
     def _show_status(self, msg: str):
         self.status_label.setText(msg)

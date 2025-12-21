@@ -46,15 +46,27 @@ class LoginDialog(QDialog):
         acc = self.account_input.text().strip()
         pwd = self.pwd_input.text()
         if not acc:
-            QMessageBox.warning(self, "Warn", "請輸入帳號")
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_account_required", "請輸入帳號"),
+            )
             return
         row = self.auth_dao.db.fetch_one("SELECT * FROM authority WHERE s_account = ? AND active = 1", (acc,))
         if not row:
-            QMessageBox.critical(self, "Error", "帳號不存在或未啟用")
+            QMessageBox.critical(
+                self,
+                self.t.get("error", "Error"),
+                self.t.get("msg_account_invalid", "帳號不存在或未啟用"),
+            )
             return
         stored = row.get("password_hash", "")
         if stored and hashlib.md5(pwd.encode()).hexdigest() != stored:
-            QMessageBox.critical(self, "Error", "密碼錯誤")
+            QMessageBox.critical(
+                self,
+                self.t.get("error", "Error"),
+                self.t.get("msg_password_invalid", "密碼錯誤"),
+            )
             return
         self.account = acc
         self.perms = {k: bool(row.get(k, 0)) for k in row.keys() if k.startswith("perm_")}

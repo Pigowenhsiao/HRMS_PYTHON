@@ -1,6 +1,8 @@
-﻿{
+{
+  "default_lang": "ja",
   "db_path": "./data/hrms.db",
   "export_path": "./export",
-  "default_lang": "ja",
-  "version": "0.3.2"
+  "version": "0.3.2",
+  "app_name": "HRMS_NEW",
+  "theme": "dark"
 }

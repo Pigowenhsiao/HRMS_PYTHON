@@ -38,9 +38,19 @@ from ui.authority_window import AuthorityWindow
 from ui.training_report_window import TrainingReportWindow
 from ui.custom_export_window import CustomExportWindow
 from ui.login_dialog import LoginDialog
+from ui.theme import apply_theme
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
 I18N_DIR = Path(__file__).parent / "i18n"
+APP_NAME = "HRMS_NEW"
+DEFAULT_CONFIG = {
+    "default_lang": "ja",
+    "db_path": "./data/hrms.db",
+    "export_path": "./export",
+    "version": "0.1.0",
+    "app_name": APP_NAME,
+    "theme": "light",
+}
 
 
 def _read_json(path: Path):
@@ -48,9 +58,14 @@ def _read_json(path: Path):
 
 
 def load_config():
+    config = DEFAULT_CONFIG.copy()
     if CONFIG_PATH.exists():
-        return _read_json(CONFIG_PATH)
-    return {"default_lang": "ja", "db_path": "./data/hrms.db", "export_path": "./export", "version": "0.1.0"}
+        config.update(_read_json(CONFIG_PATH))
+    return config
+
+
+def save_config(config: dict):
+    CONFIG_PATH.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def load_i18n(lang: str):
@@ -63,15 +78,22 @@ def load_i18n(lang: str):
 
 
 class MainScreen(QMainWindow):
-    def __init__(self):
+    def __init__(self, app=None):
         super().__init__()
+        self.app = app or QApplication.instance()
         self.config = load_config()
         self.current_lang = self.config.get("default_lang", "ja")
         self.app_version = self.config.get("version", "0.1.0")
+        self.app_name = self.config.get("app_name", APP_NAME)
         self.translations = load_i18n(self.current_lang)
         self.base_font_size = 13
         self.perms = {}
         self.current_user = None
+        self.current_theme = self.config.get("theme", "light")
+
+        if self.app:
+            self.app.setApplicationName(self.app_name)
+            self.current_theme = apply_theme(self.app, self.current_theme)
 
         self.setWindowTitle(self.translations["title"])
         self.setGeometry(120, 120, 1024, 768)
@@ -118,13 +140,24 @@ class MainScreen(QMainWindow):
         self.font_dec.setFixedWidth(40)
         self.font_inc.clicked.connect(self.increase_font)
         self.font_dec.clicked.connect(self.decrease_font)
+        self.font_inc.setProperty("variant", "ghost")
+        self.font_dec.setProperty("variant", "ghost")
         self.full_btn = QPushButton(self.translations.get("btn_fullscreen", "Full Screen"))
         self.full_btn.setFixedWidth(110)
         self.full_btn.clicked.connect(self.toggle_full_screen)
+        self.full_btn.setProperty("variant", "ghost")
+        self.theme_label = QLabel(self.translations.get("theme_label", "Theme"))
+        self.theme_toggle = QPushButton()
+        self.theme_toggle.setFixedWidth(90)
+        self.theme_toggle.setProperty("variant", "ghost")
+        self.theme_toggle.clicked.connect(self.toggle_theme)
+        self._update_theme_button()
         lang_row.addWidget(self.lang_label)
         lang_row.addWidget(self.lang_select)
         lang_row.addWidget(self.font_inc)
         lang_row.addWidget(self.font_dec)
+        lang_row.addWidget(self.theme_label)
+        lang_row.addWidget(self.theme_toggle)
         lang_row.addWidget(self.full_btn)
         lang_row.addStretch()
 
@@ -257,6 +290,8 @@ class MainScreen(QMainWindow):
         self.title_label.setText(t["heading"])
         self.subtitle_label.setText(t["sub"])
         self.footer.setText(t["footer"])
+        self.theme_label.setText(t.get("theme_label", "Theme"))
+        self._update_theme_button()
         self.box_employee.setTitle(t["section_employee"])
         self.box_certify.setTitle(t["section_certify"])
         self.box_admin.setTitle(t["section_admin"])
@@ -297,7 +332,8 @@ class MainScreen(QMainWindow):
     def export_training_csv(self):
         path = self.certify_dao.export_training_records(self.export_dir, "training_export.csv", only_active=False)
         from PyQt5.QtWidgets import QMessageBox
-        QMessageBox.information(self, self.translations.get("sync_mes", "Export"), f"CSV exported to: {path}")
+        msg_tpl = self.translations.get("msg_export_csv_done", "CSV exported to: {path}")
+        QMessageBox.information(self, self.translations.get("sync_mes", "Export"), msg_tpl.format(path=path))
 
     def open_basic_window(self):
         dlg = BasicWindow(self.basic_dao, self.translations)
@@ -376,6 +412,8 @@ class MainScreen(QMainWindow):
         self.lang_select.setFont(label_font)
         self.font_inc.setFont(label_font)
         self.font_dec.setFont(label_font)
+        self.theme_label.setFont(label_font)
+        self.theme_toggle.setFont(label_font)
         if hasattr(self, "full_btn"):
             self.full_btn.setFont(label_font)
         self.box_employee.setFont(group_font)
@@ -406,6 +444,21 @@ class MainScreen(QMainWindow):
             self.showNormal()
         else:
             self.showFullScreen()
+
+    def _update_theme_button(self):
+        if self.current_theme == "dark":
+            label = self.translations.get("theme_dark", "Dark")
+        else:
+            label = self.translations.get("theme_light", "Light")
+        self.theme_toggle.setText(label)
+
+    def toggle_theme(self):
+        self.current_theme = "dark" if self.current_theme == "light" else "light"
+        if self.app:
+            self.current_theme = apply_theme(self.app, self.current_theme)
+        self._update_theme_button()
+        self.config["theme"] = self.current_theme
+        save_config(self.config)
 
     def _update_status_labels(self):
         ready = self.translations.get("status_ready", "Ready")
@@ -441,6 +494,6 @@ class MainScreen(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
-    mainWin = MainScreen()
+    mainWin = MainScreen(app)
     mainWin.show()
     app.exec_()
