@@ -165,10 +165,10 @@ def load_i18n(lang: str):
 
 
 class MainScreen(QMainWindow):
-    CARD_WIDTH = 240
-    CARD_HEIGHT = 78
-    NAV_EXPANDED_WIDTH = 200
-    NAV_COLLAPSED_WIDTH = 68
+    CARD_WIDTH = 360
+    CARD_HEIGHT = 96
+    NAV_EXPANDED_WIDTH = 220
+    NAV_COLLAPSED_WIDTH = 72
 
     def __init__(self, app=None):
         super().__init__()
@@ -243,10 +243,11 @@ class MainScreen(QMainWindow):
 
         root = QWidget()
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(20, 20, 14, 14)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(24, 24, 20, 18)
+        main_layout.setSpacing(18)
 
         lang_row = QHBoxLayout()
+        lang_row.setSpacing(10)
         self.lang_label = QLabel(self.translations["lang_label"])
         self.lang_select = QComboBox()
         self.lang_select.addItems(["繁中", "English", "日本語"])
@@ -255,19 +256,19 @@ class MainScreen(QMainWindow):
         self.lang_select.currentIndexChanged.connect(self._on_lang_change)
         self.font_inc = QPushButton("+A")
         self.font_dec = QPushButton("-A")
-        self.font_inc.setFixedWidth(40)
-        self.font_dec.setFixedWidth(40)
+        self.font_inc.setFixedWidth(int(40 * 1.3))
+        self.font_dec.setFixedWidth(int(40 * 1.3))
         self.font_inc.clicked.connect(self.increase_font)
         self.font_dec.clicked.connect(self.decrease_font)
         self.font_inc.setProperty("variant", "ghost")
         self.font_dec.setProperty("variant", "ghost")
         self.full_btn = QPushButton(self.translations.get("btn_fullscreen", "Full Screen"))
-        self.full_btn.setFixedWidth(110)
+        self.full_btn.setFixedWidth(int(110 * 1.3))
         self.full_btn.clicked.connect(self.toggle_full_screen)
         self.full_btn.setProperty("variant", "ghost")
         self.theme_label = QLabel(self.translations.get("theme_label", "Theme"))
         self.theme_toggle = QPushButton()
-        self.theme_toggle.setFixedWidth(90)
+        self.theme_toggle.setFixedWidth(int(90 * 1.3))
         self.theme_toggle.setProperty("variant", "ghost")
         self.theme_toggle.clicked.connect(self.toggle_theme)
         self._update_theme_button()
@@ -282,6 +283,9 @@ class MainScreen(QMainWindow):
 
         self.title_label = QLabel(self.translations["heading"])
         self.subtitle_label = QLabel(self.translations["sub"])
+        self.title_label.setObjectName("mainTitle")
+        self.subtitle_label.setObjectName("mainSubtitle")
+        self.subtitle_label.setWordWrap(True)
 
         main_layout.addLayout(lang_row)
         main_layout.addWidget(self.title_label)
@@ -337,6 +341,7 @@ class MainScreen(QMainWindow):
         main_layout.addLayout(body_layout)
 
         self.footer = QLabel(self.translations["footer"])
+        self.footer.setObjectName("mainFooter")
         main_layout.addWidget(self.footer)
 
         root.setLayout(main_layout)
@@ -346,6 +351,7 @@ class MainScreen(QMainWindow):
         self.status_label = QLabel()
         self.status_user_label = QLabel()
         self.status_credit_label = QLabel()
+        self.status_credit_label.setObjectName("statusCredit")
         self.status.addWidget(self.status_label, 1)
         self.status.addPermanentWidget(self.status_user_label, 0)
         self.status.addPermanentWidget(self.status_credit_label, 0)

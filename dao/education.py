@@ -13,6 +13,14 @@ class EducationDAO:
         rows = self.db.fetch_all(sql)
         return [r.get(column, "") for r in rows if r.get(column, "")]
 
+    def list_emp_ids(self, active_only: bool = True) -> List[str]:
+        sql = "SELECT emp_id FROM basic"
+        if active_only:
+            sql += " WHERE active = 1"
+        sql += " ORDER BY emp_id"
+        rows = self.db.fetch_all(sql)
+        return [r["emp_id"] for r in rows]
+
     def list_education(
         self,
         active_only: bool = True,

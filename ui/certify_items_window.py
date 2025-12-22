@@ -187,6 +187,15 @@ class CertifyItemsWindow(QDialog):
             return str(data).strip()
         return combo.currentText().strip()
 
+    def _get_dept_value(self) -> str:
+        data = self.dept.currentData()
+        if data is not None and str(data).strip():
+            return str(data).strip()
+        text = self.dept.currentText().strip()
+        if text == self.t.get("filter_all", "ALL"):
+            return "ALL"
+        return text
+
     def create_item(self):
         data = self._collect_form()
         if not data["certify_id"]:
@@ -212,7 +221,7 @@ class CertifyItemsWindow(QDialog):
     def _collect_form(self):
         return dict(
             certify_id=self.certify_id.text().strip(),
-            dept=self.dept.currentData() or "",
+            dept=self._get_dept_value(),
             certify_name=self.certify_name.text().strip(),
             certify_time=self.certify_time.text().strip(),
             certify_grade=self._get_combo_value(self.certify_grade),

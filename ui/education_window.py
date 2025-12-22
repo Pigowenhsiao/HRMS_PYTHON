@@ -35,6 +35,10 @@ class EducationWindow(QDialog):
         self.education_cb = QComboBox(); self.education_cb.addItem(all_label, "")
         self.school_cb = QComboBox(); self.school_cb.addItem(all_label, "")
         self.major_cb = QComboBox(); self.major_cb.addItem(all_label, "")
+        filter_width = self.education_cb.sizeHint().width() * 2
+        self.education_cb.setMinimumWidth(filter_width)
+        self.school_cb.setMinimumWidth(filter_width)
+        self.major_cb.setMinimumWidth(filter_width)
         self.refresh_btn = QPushButton(self._label("refresh", "Refresh"))
         self.refresh_btn.clicked.connect(self.load_data)
         self.filter_edu_btn = QPushButton(self._label("filter_edu", "Filter by Education"))
@@ -178,7 +182,7 @@ class EducationWindow(QDialog):
                 self.table.setItem(r_idx, c_idx, item)
 
     def update_record(self):
-        emp = self.emp_input.text().strip()
+        emp = self._get_combo_value(self.emp_input)
         if not emp:
             QMessageBox.warning(
                 self,
@@ -188,11 +192,13 @@ class EducationWindow(QDialog):
             return
         try:
             self.dao.upsert_education(
-                emp_id=self._get_combo_value(self.emp_input),
+                emp_id=emp,
                 education=self.edu_input.text().strip(),
                 g_school=self.school_input.text().strip(),
                 major=self.major_input.text().strip(),
             )
-            self.load_filters(); self.load_data()
+            self.load_filters()
+            self.load_data()
+            self._set_combo_if_exists(self.emp_input, emp)
         except Exception as e:
             QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

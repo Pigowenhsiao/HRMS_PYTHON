@@ -95,6 +95,9 @@ def _build_stylesheet(colors: Dict[str, str]) -> str:
     QLabel {{
         color: {colors['text']};
     }}
+    QLabel#mainSubtitle, QLabel#mainFooter, QLabel#statusCredit {{
+        color: {colors['muted']};
+    }}
     QPushButton {{
         background-color: {colors['accent']};
         color: {colors['accent_text']};
@@ -163,8 +166,9 @@ def _build_stylesheet(colors: Dict[str, str]) -> str:
         color: {colors['text']};
         border: 1px solid {colors['border']};
         border-radius: 14px;
-        padding: 10px 12px;
+        padding: 12px 16px;
         font-weight: 600;
+        text-align: left;
     }}
     QPushButton[variant="card"]:hover {{
         border: 1px solid {colors['accent']};
