@@ -44,8 +44,16 @@ from ui.custom_export_window import CustomExportWindow
 from ui.login_dialog import LoginDialog
 from ui.theme import apply_theme
 
-CONFIG_PATH = Path(__file__).parent / "config.json"
-I18N_DIR = Path(__file__).parent / "i18n"
+
+def _get_base_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+BASE_DIR = _get_base_dir()
+CONFIG_PATH = BASE_DIR / "config.json"
+I18N_DIR = BASE_DIR / "i18n"
 APP_NAME = "HRMS"
 DEFAULT_CONFIG = {
     "default_lang": "ja",
@@ -77,7 +85,7 @@ def save_config(config: dict):
 def _normalize_config_paths(config: dict) -> dict:
     db_path = Path(config.get("db_path", DEFAULT_CONFIG["db_path"]))
     if not db_path.is_absolute():
-        base_dir = Path(__file__).parent
+        base_dir = BASE_DIR
         candidate = base_dir / db_path
         if not candidate.exists():
             alt = base_dir / "DATA" / "hrms.db"
@@ -192,7 +200,7 @@ class MainScreen(QMainWindow):
         self.setGeometry(120, 120, 1024, 768)
         self.setMinimumSize(1024, 768)
 
-        base_dir = Path(__file__).parent
+        base_dir = BASE_DIR
         db_path_cfg = Path(self.config.get("db_path", "./data/hrms.db"))
         export_path_cfg = Path(self.config.get("export_path", "./export"))
         db_path = db_path_cfg if db_path_cfg.is_absolute() else (base_dir / db_path_cfg)

@@ -1,5 +1,5 @@
 {
-  "default_lang": "en",
+  "default_lang": "ja",
   "db_path": "./data/hrms.db",
   "export_path": "./export",
   "version": "0.3.3",

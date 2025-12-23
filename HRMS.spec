@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+
 a = Analysis(
     ['HRMS.py'],
     pathex=[],
@@ -19,24 +20,20 @@ exe = EXE(
     pyz,
     a.scripts,
     [],
-    [],
-    [],
+    exclude_binaries=True,
     name='HRMS',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,
+    console=True,
+    contents_directory='.',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    exclude_binaries=True,
 )
-
 coll = COLLECT(
     exe,
     a.binaries,
@@ -46,10 +43,3 @@ coll = COLLECT(
     upx_exclude=[],
     name='HRMS',
 )
-
-datas = [
-    ('config.json', '.'),
-    ('i18n', 'i18n'),
-    ('data/hrms.db', 'DATA'),
-    # ('export', 'export'),  # optional
-]
