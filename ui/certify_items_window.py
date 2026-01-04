@@ -13,7 +13,12 @@ from PyQt5.QtWidgets import (
     QGridLayout,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state, center_table_columns
+from ui.window_utils import (
+    set_default_window_state,
+    center_table_columns,
+    set_combo_if_exists,
+    get_combo_value,
+)
 
 
 class CertifyItemsWindow(QDialog):
@@ -166,26 +171,13 @@ class CertifyItemsWindow(QDialog):
         r = items[0].row()
         values = {self.headers[c]: self.table.item(r, c).text() for c in range(len(self.headers))}
         self.certify_id.setText(values.get("certify_id", ""))
-        self._set_combo_if_exists(self.dept, values.get("dept", ""))
+        set_combo_if_exists(self.dept, values.get("dept", ""))
         self.certify_name.setText(values.get("certify_name", ""))
         self.certify_time.setText(values.get("certify_time", ""))
-        self._set_combo_if_exists(self.certify_grade, values.get("certify_grade", ""))
-        self._set_combo_if_exists(self.certify_type, values.get("certify_type", ""))
+        set_combo_if_exists(self.certify_grade, values.get("certify_grade", ""))
+        set_combo_if_exists(self.certify_type, values.get("certify_type", ""))
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
-
-    def _set_combo_if_exists(self, combo: QComboBox, value: str):
-        idx = combo.findData(value)
-        if idx >= 0:
-            combo.setCurrentIndex(idx)
-        else:
-            combo.setEditText(value)
-
-    def _get_combo_value(self, combo: QComboBox) -> str:
-        data = combo.currentData()
-        if data is not None and str(data).strip():
-            return str(data).strip()
-        return combo.currentText().strip()
 
     def _get_dept_value(self) -> str:
         data = self.dept.currentData()
@@ -224,8 +216,8 @@ class CertifyItemsWindow(QDialog):
             dept=self._get_dept_value(),
             certify_name=self.certify_name.text().strip(),
             certify_time=self.certify_time.text().strip(),
-            certify_grade=self._get_combo_value(self.certify_grade),
-            certify_type=self._get_combo_value(self.certify_type),
+            certify_grade=get_combo_value(self.certify_grade),
+            certify_type=get_combo_value(self.certify_type),
             remark=self.remark.text().strip(),
             active=self.active.isChecked(),
         )

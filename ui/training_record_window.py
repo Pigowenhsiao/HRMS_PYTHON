@@ -14,7 +14,12 @@ from PyQt5.QtWidgets import (
     QDateEdit,
 )
 from PyQt5.QtCore import Qt, QDate
-from ui.window_utils import set_default_window_state, center_table_columns
+from ui.window_utils import (
+    set_default_window_state,
+    center_table_columns,
+    set_combo_if_exists,
+    get_combo_value,
+)
 
 
 class TrainingRecordWindow(QDialog):
@@ -198,30 +203,17 @@ class TrainingRecordWindow(QDialog):
         r = items[0].row()
         values = {self.headers[c]: self.table.item(r, c).text() for c in range(len(self.headers))}
         self.selected_certify_no = values.get("certify_no", "")
-        self._set_combo_if_exists(self.emp_cb, values.get("emp_id", ""))
-        self._set_combo_if_exists(self.certify_cb, values.get("certify_id", ""))
+        set_combo_if_exists(self.emp_cb, values.get("emp_id", ""))
+        set_combo_if_exists(self.certify_cb, values.get("certify_id", ""))
         raw_date = values.get("certify_date", "")
         parsed = QDate.fromString(raw_date, "yyyy-MM-dd")
         if parsed.isValid():
             self.certify_date.setDate(parsed)
         else:
             self.certify_date.setDate(self.certify_date.minimumDate())
-        self._set_combo_if_exists(self.certify_type, values.get("certify_type", ""))
+        set_combo_if_exists(self.certify_type, values.get("certify_type", ""))
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
-
-    def _set_combo_if_exists(self, combo: QComboBox, value: str):
-        idx = combo.findData(value)
-        if idx >= 0:
-            combo.setCurrentIndex(idx)
-        else:
-            combo.setEditText(value)
-
-    def _get_combo_value(self, combo: QComboBox) -> str:
-        data = combo.currentData()
-        if data is not None and str(data).strip():
-            return str(data).strip()
-        return combo.currentText().strip()
 
     def _collect_form(self):
         selected_date = self.certify_date.date()
@@ -230,10 +222,10 @@ class TrainingRecordWindow(QDialog):
         else:
             certify_date = selected_date.toString("yyyy-MM-dd")
         return dict(
-            emp_id=self._get_combo_value(self.emp_cb),
-            certify_id=self._get_combo_value(self.certify_cb),
+            emp_id=get_combo_value(self.emp_cb),
+            certify_id=get_combo_value(self.certify_cb),
             certify_date=certify_date,
-            certify_type=self._get_combo_value(self.certify_type),
+            certify_type=get_combo_value(self.certify_type),
             remark=self.remark.text().strip(),
             active=self.active.isChecked(),
         )

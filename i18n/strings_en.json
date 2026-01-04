@@ -20,6 +20,7 @@
   "footer": "Status: SQLite backend (./data/hrms.db). Configure DB and export paths first.",
   "lang_label": "Language",
   "status_ready": "Ready",
+  "status_ready_db": "Ready | DB: {path}",
   "status_user_version": "User: {user} | Version: {version}",
   "status_credit": "Created by Pigo Hsiao",
   "btn_fullscreen": "Full Screen",
@@ -134,5 +135,19 @@
   "msg_required_area": "Area code is required",
   "msg_required_dept": "Dept code is required",
   "msg_duplicate_record": "Duplicate record, switched to update",
-  "msg_create_success": "Created successfully"
+  "msg_create_success": "Created successfully",
+  "db_path_label": "Database Path",
+  "db_path_placeholder": "Enter DB path, e.g. \\\\server\\share\\hrms.db",
+  "db_browse": "Browse",
+  "db_apply": "Apply",
+  "db_create": "Create Database",
+  "msg_db_path_required": "Please enter a database path",
+  "msg_db_path_missing": "Database not found: {path}",
+  "msg_db_create_prompt": "Create a new database?",
+  "msg_db_switch_success": "Database setting updated: {path}",
+  "msg_db_switch_failed": "Database switch failed: {error}",
+  "msg_db_create_success": "Database created: {path}",
+  "msg_db_create_exists": "Database file already exists and will not be overwritten: {path}",
+  "msg_db_restart_prompt": "Restart now?",
+  "msg_db_create_failed": "Create database failed: {error}"
 }

@@ -1,4 +1,5 @@
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QComboBox
 
 
 def apply_window_controls(window):
@@ -23,3 +24,22 @@ def center_table_columns(table, columns):
             item = table.item(row, col)
             if item:
                 item.setTextAlignment(Qt.AlignCenter)
+
+
+def set_combo_if_exists(combo: QComboBox, value: str):
+    idx = combo.findData(value)
+    if idx >= 0:
+        combo.setCurrentIndex(idx)
+    else:
+        combo.setEditText(value)
+
+
+def get_combo_value(combo: QComboBox) -> str:
+    data = combo.currentData()
+    if data is not None and str(data).strip():
+        return str(data).strip()
+    return combo.currentText().strip()
+
+
+def label_text(translations, key, default):
+    return translations.get(key, default)

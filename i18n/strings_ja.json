@@ -20,6 +20,7 @@
   "footer": "状態：SQLite バックエンド（既定 ./data/hrms.db）| 先にDBと出力パスを設定してください",
   "lang_label": "言語",
   "status_ready": "準備完了",
+  "status_ready_db": "準備完了 | DB：{path}",
   "status_user_version": "ユーザー：{user} | バージョン：{version}",
   "status_credit": "Created by Pigo Hsiao",
   "btn_fullscreen": "全画面",
@@ -134,5 +135,19 @@
   "msg_required_area": "エリアコードを入力してください",
   "msg_required_dept": "部門コードを入力してください",
   "msg_duplicate_record": "重複データのため更新に切替えました",
-  "msg_create_success": "新規作成に成功しました"
+  "msg_create_success": "新規作成に成功しました",
+  "db_path_label": "データベースパス",
+  "db_path_placeholder": "DB パスを入力（例：\\\\server\\share\\hrms.db）",
+  "db_browse": "参照",
+  "db_apply": "適用",
+  "db_create": "データベース作成",
+  "msg_db_path_required": "データベースパスを入力してください",
+  "msg_db_path_missing": "データベースが見つかりません：{path}",
+  "msg_db_create_prompt": "新しいデータベースを作成しますか？",
+  "msg_db_switch_success": "データベース設定を更新しました：{path}",
+  "msg_db_switch_failed": "データベース切替えに失敗しました：{error}",
+  "msg_db_create_success": "データベースを作成しました：{path}",
+  "msg_db_create_exists": "データベースファイルが既に存在します。上書きできません：{path}",
+  "msg_db_restart_prompt": "今すぐ再起動しますか？",
+  "msg_db_create_failed": "データベース作成に失敗しました：{error}"
 }

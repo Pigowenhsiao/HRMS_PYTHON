@@ -13,7 +13,12 @@ from PyQt5.QtWidgets import (
     QGroupBox,
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state, center_table_columns
+from ui.window_utils import (
+    set_default_window_state,
+    center_table_columns,
+    set_combo_if_exists,
+    get_combo_value,
+)
 
 
 class CertifyToolMapWindow(QDialog):
@@ -149,27 +154,14 @@ class CertifyToolMapWindow(QDialog):
             return
         r = items[0].row()
         values = {self.headers[c]: self.table.item(r, c).text() for c in range(len(self.headers))}
-        self._set_combo_if_exists(self.certify_id, values.get("certify_id", ""))
+        set_combo_if_exists(self.certify_id, values.get("certify_id", ""))
         self.tool_id.setText(values.get("tool_id", ""))
         self.remark.setText(values.get("remark", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
 
-    def _set_combo_if_exists(self, combo: QComboBox, value: str):
-        idx = combo.findData(value)
-        if idx >= 0:
-            combo.setCurrentIndex(idx)
-        else:
-            combo.setEditText(value)
-
-    def _get_combo_value(self, combo: QComboBox) -> str:
-        data = combo.currentData()
-        if data is not None and str(data).strip():
-            return str(data).strip()
-        return combo.currentText().strip()
-
     def _collect_form(self):
         return dict(
-            certify_id=self._get_combo_value(self.certify_id),
+            certify_id=get_combo_value(self.certify_id),
             tool_id=self.tool_id.text().strip(),
             remark=self.remark.text().strip(),
             active=self.active.isChecked(),

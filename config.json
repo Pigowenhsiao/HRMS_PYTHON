@@ -1,6 +1,6 @@
 {
   "default_lang": "ja",
-  "db_path": "./data/hrms.db",
+  "db_path": "E:/python_Code/HRMS_PYTHON/data/hrms.db",
   "export_path": "./export",
   "version": "0.3.3",
   "app_name": "HRMS",

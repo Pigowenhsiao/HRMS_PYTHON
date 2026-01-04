@@ -15,6 +15,12 @@
 - MainScreen._init_ui: Build main layout, navigation, sections, and status bar.
 - MainScreen._create_card_button: Create a card-style button and register it.
 - MainScreen._login_and_apply_permissions: Run login dialog and apply perms.
+- MainScreen.get_db_path: Return the current database path as a string.
+- MainScreen._resolve_db_path: Resolve absolute or base-dir relative DB path.
+- MainScreen._load_schema_sql: Load schema SQL and optionally drop authority seed.
+- MainScreen._create_database_with_schema: Create DB schema and copy authority rows.
+- MainScreen._reload_permissions_from_db: Refresh permissions for current user.
+- MainScreen.switch_database: Switch to a new database path with optional create.
 - MainScreen._section_employee: Build employee section button grid.
 - MainScreen._section_certify: Build certify section button grid.
 - MainScreen._section_admin: Build admin section button grid.
@@ -54,6 +60,23 @@
 - apply_window_controls: Add minimize/maximize/close flags and style hints.
 - set_default_window_state: Apply window controls and start maximized.
 - center_table_columns: Center text in selected table columns.
+- set_combo_if_exists: Set combo box selection or fallback to text input.
+- get_combo_value: Read combo box data with text fallback.
+- label_text: Resolve translated label text with default fallback.
+
+## ui/crud_base.py
+- CrudBaseWindow.__init__: Initialize CRUD base window config and load data.
+- CrudBaseWindow._t: Resolve translation text with default fallback.
+- CrudBaseWindow._init_ui: Build table, form, and CRUD buttons.
+- CrudBaseWindow._get_text_value: Read trimmed text value from a field widget.
+- CrudBaseWindow._get_checkbox_value: Read checkbox state for active flag.
+- CrudBaseWindow._get_key_value: Read key field value for CRUD actions.
+- CrudBaseWindow._warn_required: Show required-field warning per action.
+- CrudBaseWindow.load_data: Populate table rows from DAO list method.
+- CrudBaseWindow.on_row_selected: Load selected row into form fields.
+- CrudBaseWindow.create_record: Validate and create record via DAO.
+- CrudBaseWindow.update_record: Validate and update record via DAO.
+- CrudBaseWindow.delete_record: Validate and delete record via DAO.
 
 ## ui/theme.py
 - _build_stylesheet: Build Qt stylesheet string from theme colors.
@@ -76,8 +99,6 @@
 - BasicWindow.load_filters: Load filter and form combo values.
 - BasicWindow.load_data: Query and display basic employee data.
 - BasicWindow.on_row_selected: Populate form from selected row.
-- BasicWindow._set_combo_if_exists: Set combo to existing value or edit text.
-- BasicWindow._get_combo_value: Resolve combo value with data/text fallback.
 - BasicWindow._collect_form: Collect form values into dict for DAO calls.
 - BasicWindow.create_record: Validate and create basic employee record.
 - BasicWindow.update_record: Validate and update basic employee record.
@@ -85,54 +106,30 @@
 
 ## ui/personal_window.py
 - PersonalWindow.__init__: Initialize personal info window and load data.
-- PersonalWindow._label: Return translated label with default fallback.
 - PersonalWindow._init_ui: Build filters, table, form, and save button.
 - PersonalWindow.load_data: Query and display personal info rows.
 - PersonalWindow.on_row_selected: Populate form from selected row.
 - PersonalWindow._load_emp_ids: Load employee IDs into combo.
-- PersonalWindow._set_combo_if_exists: Set combo to existing value or edit text.
-- PersonalWindow._get_combo_value: Resolve combo value with data/text fallback.
 - PersonalWindow.save_info: Validate and update personal info.
 
 ## ui/education_window.py
 - EducationWindow.__init__: Initialize education window and load data.
-- EducationWindow._label: Return translated label with default fallback.
 - EducationWindow._init_ui: Build filters, table, form, and update button.
 - EducationWindow._apply_headers: Apply translated column headers.
 - EducationWindow.load_filters: Load distinct education/school/major filters.
 - EducationWindow._load_emp_ids: Load employee IDs into combo.
 - EducationWindow.on_row_selected: Populate form from selected row.
-- EducationWindow._set_combo_if_exists: Set combo to existing value or edit text.
-- EducationWindow._get_combo_value: Resolve combo value with data/text fallback.
 - EducationWindow.load_data: Query and display education records.
 - EducationWindow.update_record: Validate and upsert education record.
 
 ## ui/area_window.py
 - AreaWindow.__init__: Initialize area maintenance window and load data.
-- AreaWindow._init_ui: Build table, form, and action buttons.
-- AreaWindow.load_data: Query and display area rows.
-- AreaWindow.on_row_selected: Populate form from selected row.
-- AreaWindow.create_record: Validate and create area.
-- AreaWindow.update_record: Validate and update area.
-- AreaWindow.delete_record: Validate and delete area.
 
 ## ui/section_window.py
 - SectionWindow.__init__: Initialize section maintenance window and load data.
-- SectionWindow._init_ui: Build table, form, and action buttons.
-- SectionWindow.load_data: Query and display section rows.
-- SectionWindow.on_row_selected: Populate form from selected row.
-- SectionWindow.create_record: Validate and create section.
-- SectionWindow.update_record: Validate and update section.
-- SectionWindow.delete_record: Validate and delete section.
 
 ## ui/job_window.py
 - JobWindow.__init__: Initialize job maintenance window and load data.
-- JobWindow._init_ui: Build table, form, and action buttons.
-- JobWindow.load_data: Query and display job rows.
-- JobWindow.on_row_selected: Populate form from selected row.
-- JobWindow.create_record: Validate and create job.
-- JobWindow.update_record: Validate and update job.
-- JobWindow.delete_record: Validate and delete job.
 
 ## ui/certify_items_window.py
 - CertifyItemsWindow.__init__: Initialize certify items window and load data.
@@ -140,8 +137,6 @@
 - CertifyItemsWindow._load_depts: Load dept, grade, and type combo options.
 - CertifyItemsWindow.load_data: Query and display certify items.
 - CertifyItemsWindow.on_row_selected: Populate form from selected row.
-- CertifyItemsWindow._set_combo_if_exists: Set combo to existing value or edit text.
-- CertifyItemsWindow._get_combo_value: Resolve combo value with data/text fallback.
 - CertifyItemsWindow._get_dept_value: Resolve dept value and handle ALL label.
 - CertifyItemsWindow.create_item: Validate and create certify item.
 - CertifyItemsWindow.update_item: Validate and update certify item.
@@ -153,8 +148,6 @@
 - CertifyToolMapWindow._load_certify_ids: Load certify IDs into combo.
 - CertifyToolMapWindow.load_data: Query and display certify-tool mappings.
 - CertifyToolMapWindow.on_row_selected: Populate form from selected row.
-- CertifyToolMapWindow._set_combo_if_exists: Set combo to existing value or edit text.
-- CertifyToolMapWindow._get_combo_value: Resolve combo value with data/text fallback.
 - CertifyToolMapWindow._collect_form: Collect form values into dict for DAO calls.
 - CertifyToolMapWindow.create_mapping: Validate and create mapping.
 - CertifyToolMapWindow.update_mapping: Validate and update mapping.
@@ -166,8 +159,6 @@
 - TrainingRecordWindow.load_filters: Load employee, certify, and type options.
 - TrainingRecordWindow.load_data: Query and display training records.
 - TrainingRecordWindow.on_row_selected: Populate form from selected row.
-- TrainingRecordWindow._set_combo_if_exists: Set combo to existing value or edit text.
-- TrainingRecordWindow._get_combo_value: Resolve combo value with data/text fallback.
 - TrainingRecordWindow._collect_form: Collect form values into dict for DAO calls.
 - TrainingRecordWindow.create_record: Create or update on duplicate key match.
 - TrainingRecordWindow.update_record: Update selected training record.
@@ -185,8 +176,13 @@
 - AuthorityWindow._init_ui: Build filter, table, perms grid, and form.
 - AuthorityWindow.load_data: Query accounts and show perms as checkboxes.
 - AuthorityWindow.on_row_selected: Load selected account and perms.
-- AuthorityWindow.create_account: Validate and create account with perms.
-- AuthorityWindow.update_account: Validate and update account with perms.
+- AuthorityWindow.on_browse_db: Open a file dialog for selecting DB path.
+- AuthorityWindow.on_apply_db: Apply DB path setting and prompt for restart.
+- AuthorityWindow.on_create_db: Create a new database with the default filename.
+- AuthorityWindow._prompt_restart: Ask the user to restart after DB changes.
+- AuthorityWindow._restart_app: Restart the app after confirming.
+- AuthorityWindow.create_account: Validate and create account with perms.       
+- AuthorityWindow.update_account: Validate and update account with perms.       
 
 ## ui/custom_export_window.py
 - CustomExportWindow.__init__: Initialize custom export window and load data.
@@ -202,7 +198,7 @@
 - TrainingReportWindow.export_csv: Export report rows to CSV and notify user.
 
 ## dao/db.py
-- Database.__init__: Store DB path and ensure directory exists.
+- Database.__init__: Store DB path, busy timeout, and ensure directory exists.
 - Database.connect: Open sqlite connection with row dicts.
 - Database.fetch_all: Execute query and return list of dict rows.
 - Database.fetch_one: Execute query and return single row dict.
@@ -291,7 +287,9 @@
 ## scripts/ui_smoke.au3
 - LogLine: Append a line to the UI smoke test log file.
 - ClickRel: Click a position relative to a window rectangle.
+- ClickRelYOffset: Click a position relative to a window rectangle with Y offset.
 - OpenDialogByClick: Open a dialog by click, then close it with a key.
+- OpenDialogByClickAndWaitNewWindow: Click then wait for a new window and close it.
 - FindWindowByPid: Find a visible window handle for a process id.
 - WaitForWindowByPid: Wait for a visible window for a process id.
 - FindWindowByTitleAndPid: Find a window by title regex and process id.

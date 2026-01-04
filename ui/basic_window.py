@@ -16,7 +16,12 @@
     QCalendarWidget,
 )
 from PyQt5.QtCore import Qt, QDate, QPoint
-from ui.window_utils import set_default_window_state, center_table_columns
+from ui.window_utils import (
+    set_default_window_state,
+    center_table_columns,
+    set_combo_if_exists,
+    get_combo_value,
+)
 
 
 class PopupDateEdit(QDateEdit):
@@ -203,31 +208,18 @@ class BasicWindow(QDialog):
         self.dept_code.setCurrentIndex(max(0, self.dept_code.findData(values.get("dept_code", ""))))
         self.last_name.setText(values.get("last_name", ""))
         self.first_name.setText(values.get("first_name", ""))
-        self._set_combo_if_exists(self.title, values.get("title", ""))
+        set_combo_if_exists(self.title, values.get("title", ""))
         raw_date = values.get("on_board_date", "")
         parsed = QDate.fromString(raw_date, "yyyy-MM-dd")
         if parsed.isValid():
             self.on_board_date.setDate(parsed)
         else:
             self.on_board_date.setDate(self.on_board_date.minimumDate())
-        self._set_combo_if_exists(self.shift, values.get("shift", ""))
+        set_combo_if_exists(self.shift, values.get("shift", ""))
         self.area.setCurrentIndex(max(0, self.area.findData(values.get("area", ""))))
         self.function.setCurrentIndex(max(0, self.function.findData(values.get("function", ""))))
         self.meno.setText(values.get("meno", ""))
         self.active.setChecked(values.get("active", "1") in ("1", "True", "true"))
-
-    def _set_combo_if_exists(self, combo: QComboBox, value: str):
-        idx = combo.findData(value)
-        if idx >= 0:
-            combo.setCurrentIndex(idx)
-        else:
-            combo.setEditText(value)
-
-    def _get_combo_value(self, combo: QComboBox) -> str:
-        data = combo.currentData()
-        if data is not None and str(data).strip():
-            return str(data).strip()
-        return combo.currentText().strip()
 
     def _collect_form(self):
         selected_date = self.on_board_date.date()
@@ -240,9 +232,9 @@ class BasicWindow(QDialog):
             dept_code=self.dept_code.currentData(),
             last_name=self.last_name.text().strip(),
             first_name=self.first_name.text().strip(),
-            title=self._get_combo_value(self.title),
+            title=get_combo_value(self.title),
             on_board_date=on_board_date,
-            shift=self._get_combo_value(self.shift),
+            shift=get_combo_value(self.shift),
             area=self.area.currentData(),
             function=self.function.currentData(),
             meno=self.meno.text().strip(),

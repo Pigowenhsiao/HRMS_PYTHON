@@ -1,6 +1,7 @@
 ﻿import json
 import sys
 import sqlite3
+import re
 from pathlib import Path
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -221,6 +222,89 @@ class MainScreen(QMainWindow):
         self._init_ui()
         if not self._login_and_apply_permissions():
             sys.exit(0)
+
+    def get_db_path(self) -> str:
+        return str(self.db.db_path)
+
+    def _resolve_db_path(self, raw_path: str) -> Path:
+        if not raw_path:
+            return Path()
+        path = Path(raw_path)
+        if path.is_absolute():
+            return path
+        return BASE_DIR / path
+
+    def _load_schema_sql(self, include_authority_seed: bool) -> str:
+        schema_path = BASE_DIR / "sqlite_schema.sql"
+        schema = schema_path.read_text(encoding="utf-8")
+        if include_authority_seed:
+            return schema
+        return re.sub(
+            r"INSERT OR IGNORE INTO authority[\s\S]*?;\s*",
+            "",
+            schema,
+            flags=re.IGNORECASE,
+        )
+
+    def _create_database_with_schema(self, db_path: Path, authority_rows: list) -> None:
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        con = sqlite3.connect(db_path)
+        try:
+            schema_sql = self._load_schema_sql(include_authority_seed=False)
+            con.executescript(schema_sql)
+            if authority_rows:
+                cols = list(authority_rows[0].keys())
+                placeholders = ",".join(["?"] * len(cols))
+                sql = f"INSERT OR REPLACE INTO authority ({', '.join(cols)}) VALUES ({placeholders})"
+                values = [tuple(row.get(c) for c in cols) for row in authority_rows]
+                con.executemany(sql, values)
+            con.commit()
+        finally:
+            con.close()
+
+    def _reload_permissions_from_db(self) -> None:
+        if not self.current_user:
+            return
+        row = self.authority_dao.db.fetch_one(
+            "SELECT * FROM authority WHERE s_account = ? AND active = 1",
+            (self.current_user,),
+        )
+        if not row:
+            self.perms = {}
+        else:
+            self.perms = {k: bool(row.get(k, 0)) for k in row.keys() if k.startswith("perm_")}
+        self._update_status_labels()
+        self._apply_permissions()
+
+    def switch_database(self, raw_path: str, create_if_missing: bool = False) -> dict:
+        raw_path = (raw_path or "").strip()
+        if not raw_path:
+            return {"status": "error", "error": "empty"}
+        db_path = self._resolve_db_path(raw_path)
+        exists = db_path.exists()
+        if exists and create_if_missing:
+            return {"status": "exists", "path": str(db_path)}
+        if not exists:
+            if not create_if_missing:
+                return {"status": "missing", "path": str(db_path)}
+            try:
+                authority_rows = self.db.fetch_all("SELECT * FROM authority")
+                self._create_database_with_schema(db_path, authority_rows)
+                exists = True
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        try:
+            _migrate_basic_name_schema(db_path)
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+        self.config["db_path"] = raw_path
+        save_config(self.config)
+        return {
+            "status": "ok",
+            "path": str(db_path),
+            "restart_required": True,
+            "created": create_if_missing and exists,
+        }
 
     def _init_ui(self):
         self.buttons = {}
@@ -557,7 +641,12 @@ class MainScreen(QMainWindow):
         dlg.exec_()
 
     def open_authority_window(self):
-        dlg = AuthorityWindow(self.authority_dao, self.translations)
+        dlg = AuthorityWindow(
+            self.authority_dao,
+            self.translations,
+            db_path_getter=self.get_db_path,
+            db_switcher=self.switch_database,
+        )
         dlg.exec_()
 
     def open_training_report(self):
@@ -717,12 +806,13 @@ class MainScreen(QMainWindow):
             save_config(self.config)
 
     def _update_status_labels(self):
-        ready = self.translations.get("status_ready", "Ready")
+        ready_tpl = self.translations.get("status_ready_db", "Ready | DB: {path}")
         tpl = self.translations.get("status_user_version", "User: {user} | Version: {version}")
         credit = self.translations.get("status_credit", "Created by Pigo Hsiao")
         user = self.current_user or "-"
         version = self.app_version
-        self.status_label.setText(ready)
+        db_path = str(self.db.db_path) if hasattr(self, "db") else "-"
+        self.status_label.setText(ready_tpl.format(path=db_path))
         self.status_user_label.setText(tpl.format(user=user, version=version))
         self.status_credit_label.setText(credit)
 

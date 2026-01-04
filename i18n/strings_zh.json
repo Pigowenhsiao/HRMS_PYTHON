@@ -20,6 +20,7 @@
   "footer": "狀態：後端 SQLite（預設 ./data/hrms.db）| 請先設定資料庫與匯出路徑",
   "lang_label": "介面語言",
   "status_ready": "就緒",
+  "status_ready_db": "就緒 | DB：{path}",
   "status_user_version": "使用者：{user} | 版本：{version}",
   "status_credit": "Created by Pigo Hsiao",
   "btn_fullscreen": "全螢幕",
@@ -134,5 +135,19 @@
   "msg_required_area": "請輸入區域代碼",
   "msg_required_dept": "請輸入部門代碼",
   "msg_duplicate_record": "資料重複，已改為更新",
-  "msg_create_success": "新增成功"
+  "msg_create_success": "新增成功",
+  "db_path_label": "資料庫路徑",
+  "db_path_placeholder": "輸入資料庫路徑，例如 \\\\server\\share\\hrms.db",     
+  "db_browse": "瀏覽",
+  "db_apply": "套用",
+  "db_create": "新增資料庫",
+  "msg_db_path_required": "請輸入資料庫路徑",
+  "msg_db_path_missing": "資料庫不存在：{path}",
+  "msg_db_create_prompt": "是否建立新的資料庫？",
+  "msg_db_switch_success": "已更新資料庫設定：{path}",
+  "msg_db_switch_failed": "資料庫切換失敗：{error}",
+  "msg_db_create_success": "已建立資料庫：{path}",
+  "msg_db_create_exists": "資料庫檔案已存在，無法覆寫：{path}",
+  "msg_db_restart_prompt": "是否立即重新啟動？",
+  "msg_db_create_failed": "建立資料庫失敗：{error}"
 }

@@ -1,9 +1,9 @@
-﻿from PyQt5.QtWidgets import (
+from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QCheckBox, QPushButton,
     QTableWidget, QTableWidgetItem, QLineEdit, QMessageBox, QHeaderView, QGroupBox, QGridLayout
 )
 from PyQt5.QtCore import Qt
-from ui.window_utils import set_default_window_state
+from ui.window_utils import set_default_window_state, set_combo_if_exists, get_combo_value, label_text
 
 
 class EducationWindow(QDialog):
@@ -18,9 +18,6 @@ class EducationWindow(QDialog):
         self.load_filters()
         self.load_data()
 
-    def _label(self, key, default):
-        return self.t.get(key, default)
-
     def _init_ui(self):
         layout = QVBoxLayout()
         layout.setContentsMargins(18, 18, 18, 18)
@@ -29,9 +26,9 @@ class EducationWindow(QDialog):
         # Filters
         filter_row = QHBoxLayout()
         filter_row.setSpacing(8)
-        self.active_only = QCheckBox(self._label("only_active", "Only Active"))
+        self.active_only = QCheckBox(label_text(self.t, "only_active", "Only Active"))
         self.active_only.setChecked(True)
-        all_label = self._label("filter_all", "ALL")
+        all_label = label_text(self.t, "filter_all", "ALL")
         self.education_cb = QComboBox(); self.education_cb.addItem(all_label, "")
         self.school_cb = QComboBox(); self.school_cb.addItem(all_label, "")
         self.major_cb = QComboBox(); self.major_cb.addItem(all_label, "")
@@ -39,20 +36,20 @@ class EducationWindow(QDialog):
         self.education_cb.setMinimumWidth(filter_width)
         self.school_cb.setMinimumWidth(filter_width)
         self.major_cb.setMinimumWidth(filter_width)
-        self.refresh_btn = QPushButton(self._label("refresh", "Refresh"))
+        self.refresh_btn = QPushButton(label_text(self.t, "refresh", "Refresh"))
         self.refresh_btn.clicked.connect(self.load_data)
-        self.filter_edu_btn = QPushButton(self._label("filter_edu", "Filter by Education"))
-        self.filter_school_btn = QPushButton(self._label("filter_school", "Filter by School"))
-        self.filter_major_btn = QPushButton(self._label("filter_major", "Filter by Major"))
+        self.filter_edu_btn = QPushButton(label_text(self.t, "filter_edu", "Filter by Education"))
+        self.filter_school_btn = QPushButton(label_text(self.t, "filter_school", "Filter by School"))
+        self.filter_major_btn = QPushButton(label_text(self.t, "filter_major", "Filter by Major"))
         self.filter_edu_btn.clicked.connect(lambda: self.load_data(force_edu=True))
         self.filter_school_btn.clicked.connect(lambda: self.load_data(force_school=True))
         self.filter_major_btn.clicked.connect(lambda: self.load_data(force_major=True))
 
-        filter_row.addWidget(QLabel(self._label("col_education", "Education")))
+        filter_row.addWidget(QLabel(label_text(self.t, "col_education", "Education")))
         filter_row.addWidget(self.education_cb)
-        filter_row.addWidget(QLabel(self._label("col_g_school", "School")))
+        filter_row.addWidget(QLabel(label_text(self.t, "col_g_school", "School")))
         filter_row.addWidget(self.school_cb)
-        filter_row.addWidget(QLabel(self._label("col_major", "Major")))
+        filter_row.addWidget(QLabel(label_text(self.t, "col_major", "Major")))
         filter_row.addWidget(self.major_cb)
         filter_row.addWidget(self.active_only)
         filter_row.addWidget(self.refresh_btn)
@@ -80,7 +77,7 @@ class EducationWindow(QDialog):
         layout.addWidget(self.table)
 
         # Form (bottom editor)
-        edit_box = QGroupBox(self._label("edit_section", "編輯區"))
+        edit_box = QGroupBox(label_text(self.t, "edit_section", "編輯區"))
         edit_box.setMinimumHeight(180)
         edit_layout = QVBoxLayout()
         edit_layout.setContentsMargins(12, 12, 12, 12)
@@ -91,21 +88,21 @@ class EducationWindow(QDialog):
         form.setVerticalSpacing(10)
         self.emp_input = QComboBox()
         self.emp_input.setEditable(True)
-        self.emp_input.lineEdit().setPlaceholderText(self._label("col_emp_id", "EMP_ID"))
+        self.emp_input.lineEdit().setPlaceholderText(label_text(self.t, "col_emp_id", "EMP_ID"))
         self.edu_input = QLineEdit(); self.school_input = QLineEdit(); self.major_input = QLineEdit()
-        form.addWidget(QLabel(self._label("col_emp_id", "EMP_ID")), 0, 0)
+        form.addWidget(QLabel(label_text(self.t, "col_emp_id", "EMP_ID")), 0, 0)
         form.addWidget(self.emp_input, 0, 1)
-        form.addWidget(QLabel(self._label("col_education", "Education")), 0, 2)
+        form.addWidget(QLabel(label_text(self.t, "col_education", "Education")), 0, 2)
         form.addWidget(self.edu_input, 0, 3)
-        form.addWidget(QLabel(self._label("col_g_school", "School")), 1, 0)
+        form.addWidget(QLabel(label_text(self.t, "col_g_school", "School")), 1, 0)
         form.addWidget(self.school_input, 1, 1)
-        form.addWidget(QLabel(self._label("col_major", "Major")), 1, 2)
+        form.addWidget(QLabel(label_text(self.t, "col_major", "Major")), 1, 2)
         form.addWidget(self.major_input, 1, 3)
         edit_layout.addLayout(form)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
-        self.update_btn = QPushButton(self._label("update", "Update"))
+        self.update_btn = QPushButton(label_text(self.t, "update", "Update"))
         self.update_btn.clicked.connect(self.update_record)
         btn_row.addStretch()
         btn_row.addWidget(self.update_btn)
@@ -123,7 +120,7 @@ class EducationWindow(QDialog):
     def load_filters(self):
         self.education_cb.blockSignals(True); self.school_cb.blockSignals(True); self.major_cb.blockSignals(True)
         self.education_cb.clear(); self.school_cb.clear(); self.major_cb.clear()
-        all_label = self._label("filter_all", "ALL")
+        all_label = label_text(self.t, "filter_all", "ALL")
         self.education_cb.addItem(all_label, ""); self.school_cb.addItem(all_label, ""); self.major_cb.addItem(all_label, "")
         for v in self.dao.list_distinct("education"): self.education_cb.addItem(v, v)
         for v in self.dao.list_distinct("g_school"): self.school_cb.addItem(v, v)
@@ -145,26 +142,13 @@ class EducationWindow(QDialog):
         field_order = [f for f, _ in self.columns]
         values = {field_order[c]: self.table.item(r, c).text() for c in range(len(field_order))}
         edu = values.get("education", ""); school = values.get("g_school", ""); major = values.get("major", "")
-        self._set_combo_if_exists(self.education_cb, edu)
-        self._set_combo_if_exists(self.school_cb, school)
-        self._set_combo_if_exists(self.major_cb, major)
-        self._set_combo_if_exists(self.emp_input, values.get("emp_id", ""))
+        set_combo_if_exists(self.education_cb, edu)
+        set_combo_if_exists(self.school_cb, school)
+        set_combo_if_exists(self.major_cb, major)
+        set_combo_if_exists(self.emp_input, values.get("emp_id", ""))
         self.edu_input.setText(edu)
         self.school_input.setText(school)
         self.major_input.setText(major)
-
-    def _set_combo_if_exists(self, combo: QComboBox, value: str):
-        idx = combo.findData(value)
-        if idx >= 0:
-            combo.setCurrentIndex(idx)
-        else:
-            combo.setEditText(value)
-
-    def _get_combo_value(self, combo: QComboBox) -> str:
-        data = combo.currentData()
-        if data is not None and str(data).strip():
-            return str(data).strip()
-        return combo.currentText().strip()
 
     def load_data(self, force_edu=False, force_school=False, force_major=False):
         rows = self.dao.list_education(
@@ -182,7 +166,7 @@ class EducationWindow(QDialog):
                 self.table.setItem(r_idx, c_idx, item)
 
     def update_record(self):
-        emp = self._get_combo_value(self.emp_input)
+        emp = get_combo_value(self.emp_input)
         if not emp:
             QMessageBox.warning(
                 self,
@@ -199,6 +183,6 @@ class EducationWindow(QDialog):
             )
             self.load_filters()
             self.load_data()
-            self._set_combo_if_exists(self.emp_input, emp)
+            set_combo_if_exists(self.emp_input, emp)
         except Exception as e:
             QMessageBox.critical(self, self.t.get("error", "Error"), str(e))

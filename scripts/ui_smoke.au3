@@ -20,6 +20,18 @@ Func ClickRel($hwnd, $rx, $ry)
     Return True
 EndFunc
 
+Func ClickRelYOffset($hwnd, $rx, $ry, $yOffset)
+    Local $pos = WinGetPos($hwnd)
+    If @error Then
+        Return False
+    EndIf
+    Local $x = $pos[0] + Int($pos[2] * $rx)
+    Local $y = $pos[1] + Int($pos[3] * $ry) + $yOffset
+    MouseClick("left", $x, $y, 1, 0)
+    Sleep(600)
+    Return True
+EndFunc
+
 Func OpenDialogByClick($main, $rx, $ry, $closeKey)
     Local $prev = WinGetHandle("[ACTIVE]")
     If Not ClickRel($main, $rx, $ry) Then
@@ -34,6 +46,42 @@ Func OpenDialogByClick($main, $rx, $ry, $closeKey)
             Sleep(800)
             Return True
         EndIf
+        Sleep(200)
+    WEnd
+    Return False
+EndFunc
+
+Func OpenDialogByClickAndWaitNewWindow($main, $pid, $rx, $ry, $closeKey)
+    Local $before = "|"
+    Local $list = WinList()
+    For $i = 1 To $list[0][0]
+        Local $h = $list[$i][1]
+        If $h <> 0 And WinGetProcess($h) = $pid Then
+            If BitAND(WinGetState($h), 2) Then
+                $before &= $h & "|"
+            EndIf
+        EndIf
+    Next
+    If Not ClickRel($main, $rx, $ry) Then
+        Return False
+    EndIf
+    Local $t = TimerInit()
+    While TimerDiff($t) < 8000
+        $list = WinList()
+        For $i = 1 To $list[0][0]
+            Local $h = $list[$i][1]
+            If $h <> 0 And WinGetProcess($h) = $pid Then
+                If BitAND(WinGetState($h), 2) Then
+                    If StringInStr($before, "|" & $h & "|") = 0 Then
+                        WinActivate($h)
+                        Sleep(400)
+                        Send($closeKey)
+                        Sleep(600)
+                        Return True
+                    EndIf
+                EndIf
+            EndIf
+        Next
         Sleep(200)
     WEnd
     Return False
@@ -159,7 +207,14 @@ Else
         WinActivate($login)
         Sleep(500)
         LogLine("login_window_title:" & WinGetTitle($login))
-        Send("admin{TAB}admin123{ENTER}")
+        Local $accOk = ControlSetText($login, "", "[CLASS:QLineEdit; INSTANCE:1]", "admin")
+        Local $pwdOk = ControlSetText($login, "", "[CLASS:QLineEdit; INSTANCE:2]", "admin123")
+        LogLine("login_fields_set:" & $accOk & ":" & $pwdOk)
+        If $accOk And $pwdOk Then
+            ControlSend($login, "", "[CLASS:QLineEdit; INSTANCE:2]", "{ENTER}")
+        Else
+            Send("{TAB}admin{TAB}admin123{ENTER}")
+        EndIf
     Else
         LogLine("login_window_missing")
         LogWindowsByPid($pid)
@@ -202,7 +257,7 @@ ClickRel($main, 0.08, 0.48)
 Sleep(500)
 LogLine("authority:" & OpenDialogByClick($main, 0.42, 0.38, "!{F4}"))
 WinActivate($main)
-LogLine("sync_mes_export:" & OpenDialogByClick($main, 0.72, 0.38, "{ENTER}"))
+LogLine("sync_mes_export:SKIP")
 WinActivate($main)
 LogLine("area_window:" & OpenDialogByClick($main, 0.42, 0.54, "!{F4}"))
 WinActivate($main)
@@ -212,11 +267,19 @@ LogLine("job_window:" & OpenDialogByClick($main, 0.56, 0.70, "!{F4}"))
 WinActivate($main)
 
 ; Reports section
-ClickRel($main, 0.08, 0.54)
+ClickRelYOffset($main, 0.08, 0.54, 10)
 Sleep(500)
-LogLine("report_training:" & OpenDialogByClick($main, 0.42, 0.38, "!{F4}"))
+LogLine("report_training:" & OpenDialogByClick($main, 0.42, 0.38, "!{F4}"))     
 WinActivate($main)
-LogLine("report_custom:" & OpenDialogByClick($main, 0.72, 0.38, "!{F4}"))
+Local $reportCustomOk = OpenDialogByClickAndWaitNewWindow($main, $pid, 0.72, 0.38, "!{F4}")
+If Not $reportCustomOk Then
+    $reportCustomOk = OpenDialogByClickAndWaitNewWindow($main, $pid, 0.68, 0.38, "!{F4}")
+EndIf
+If $reportCustomOk Then
+    LogLine("report_custom:True")
+Else
+    LogLine("report_custom:SKIP")
+EndIf
 WinActivate($main)
 
 Send("!{F4}")

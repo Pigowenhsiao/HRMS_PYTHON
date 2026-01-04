@@ -4,14 +4,20 @@ from typing import Iterable, Tuple, Any, List, Dict
 
 
 class Database:
-    def __init__(self, db_path: Path):
+    def __init__(self, db_path: Path, busy_timeout_ms: int = 5000):
         self.db_path = Path(db_path).expanduser().resolve()
+        self.busy_timeout_ms = busy_timeout_ms
         # 確保資料夾存在
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
     def connect(self):
-        con = sqlite3.connect(self.db_path)
+        con = sqlite3.connect(self.db_path, timeout=self.busy_timeout_ms / 1000)
         con.row_factory = sqlite3.Row
+        try:
+            con.execute(f"PRAGMA busy_timeout = {self.busy_timeout_ms}")
+            con.execute("PRAGMA journal_mode = WAL")
+        except sqlite3.DatabaseError:
+            pass
         return con
 
     def fetch_all(self, sql: str, params: Iterable = ()):

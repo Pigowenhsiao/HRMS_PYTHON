@@ -1,4 +1,7 @@
+import sys
+from pathlib import Path
 from PyQt5.QtWidgets import (
+    QApplication,
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -9,17 +12,20 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QLineEdit,
+    QFileDialog,
     QMessageBox,
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QProcess
 from ui.window_utils import set_default_window_state, center_table_columns
 
 
 class AuthorityWindow(QDialog):
-    def __init__(self, dao, translations):
+    def __init__(self, dao, translations, db_path_getter=None, db_switcher=None):
         super().__init__()
         self.dao = dao
         self.t = translations
+        self.db_path_getter = db_path_getter
+        self.db_switcher = db_switcher
         self.setWindowTitle(self.t.get("authority_window_title", "權限管理"))
         self.resize(980, 520)
         set_default_window_state(self)
@@ -40,6 +46,27 @@ class AuthorityWindow(QDialog):
         filter_row.addWidget(self.refresh_btn)
         filter_row.addStretch()
         layout.addLayout(filter_row)
+
+        db_row = QHBoxLayout()
+        self.db_path_label = QLabel(self.t.get("db_path_label", "資料庫路徑"))
+        self.db_path_input = QLineEdit()
+        self.db_path_input.setPlaceholderText(
+            self.t.get("db_path_placeholder", "輸入資料庫路徑，例如 \\\\server\\share\\hrms.db")
+        )
+        if self.db_path_getter:
+            self.db_path_input.setText(self.db_path_getter())
+        self.db_browse_btn = QPushButton(self.t.get("db_browse", "瀏覽"))       
+        self.db_apply_btn = QPushButton(self.t.get("db_apply", "套用"))
+        self.db_create_btn = QPushButton(self.t.get("db_create", "新增資料庫"))
+        self.db_browse_btn.clicked.connect(self.on_browse_db)
+        self.db_apply_btn.clicked.connect(self.on_apply_db)
+        self.db_create_btn.clicked.connect(self.on_create_db)
+        db_row.addWidget(self.db_path_label)
+        db_row.addWidget(self.db_path_input, 1)
+        db_row.addWidget(self.db_browse_btn)
+        db_row.addWidget(self.db_apply_btn)
+        db_row.addWidget(self.db_create_btn)
+        layout.addLayout(db_row)
 
         self.perm_keys = [
             ("perm_basic", "employee_basic"),
@@ -114,6 +141,116 @@ class AuthorityWindow(QDialog):
         layout.addLayout(form_col)
 
         self.setLayout(layout)
+
+    def on_browse_db(self):
+        start_dir = self.db_path_input.text().strip()
+        if not start_dir and self.db_path_getter:
+            start_dir = self.db_path_getter()
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            self.t.get("db_browse", "瀏覽"),
+            start_dir,
+            "SQLite (*.db);;All Files (*)",
+        )
+        if file_path:
+            self.db_path_input.setText(file_path)
+
+    def on_apply_db(self):
+        if not self.db_switcher:
+            return
+        raw_path = self.db_path_input.text().strip()
+        if not raw_path:
+            QMessageBox.warning(
+                self,
+                self.t.get("warn", "Warn"),
+                self.t.get("msg_db_path_required", "請輸入資料庫路徑"),
+            )
+            return
+        result = self.db_switcher(raw_path, create_if_missing=False)
+        if result.get("status") == "missing":
+            msg_tpl = self.t.get("msg_db_path_missing", "資料庫不存在：{path}")
+            QMessageBox.warning(
+                self,
+                self.t.get("error", "Error"),
+                msg_tpl.format(path=result.get("path", raw_path)),
+            )
+            return
+        if result.get("status") == "ok":
+            self.db_path_input.setText(result.get("path", raw_path))
+            self._prompt_restart(result.get("path", raw_path), created=False)
+            return
+        err = result.get("error", "")
+        msg_tpl = self.t.get("msg_db_switch_failed", "資料庫切換失敗：{error}")
+        QMessageBox.critical(
+            self, self.t.get("error", "Error"), msg_tpl.format(error=err)
+        )
+
+    def on_create_db(self):
+        if not self.db_switcher:
+            return
+        start_dir = self.db_path_input.text().strip()
+        if not start_dir and self.db_path_getter:
+            start_dir = self.db_path_getter()
+        if start_dir:
+            start_dir = str(Path(start_dir).expanduser())
+            if Path(start_dir).is_file():
+                start_dir = str(Path(start_dir).parent)
+        dir_path = QFileDialog.getExistingDirectory(
+            self,
+            self.t.get("db_create", "新增資料庫"),
+            start_dir,
+        )
+        if not dir_path:
+            return
+        target_path = Path(dir_path) / "HRMS_Database.db"
+        if target_path.exists():
+            msg_tpl = self.t.get(
+                "msg_db_create_exists",
+                "資料庫檔案已存在，無法覆寫：{path}",
+            )
+            QMessageBox.warning(
+                self,
+                self.t.get("error", "Error"),
+                msg_tpl.format(path=str(target_path)),
+            )
+            return
+        result = self.db_switcher(str(target_path), create_if_missing=True)
+        if result.get("status") == "ok":
+            self.db_path_input.setText(result.get("path", str(target_path)))
+            self._prompt_restart(result.get("path", str(target_path)), created=True)
+            return
+        err = result.get("error", "")
+        msg_tpl = self.t.get("msg_db_create_failed", "建立資料庫失敗：{error}")
+        QMessageBox.critical(
+            self, self.t.get("error", "Error"), msg_tpl.format(error=err)
+        )
+
+    def _prompt_restart(self, path: str, created: bool):
+        if created:
+            msg_tpl = self.t.get("msg_db_create_success", "已建立資料庫：{path}")
+        else:
+            msg_tpl = self.t.get("msg_db_switch_success", "已更新資料庫設定：{path}")
+        prompt = QMessageBox(self)
+        prompt.setIcon(QMessageBox.Information)
+        prompt.setWindowTitle(self.t.get("info", "Info"))
+        prompt.setText(msg_tpl.format(path=path))
+        prompt.setInformativeText(
+            self.t.get("msg_db_restart_prompt", "是否立即重新啟動？")
+        )
+        prompt.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        prompt.setDefaultButton(QMessageBox.Yes)
+        if prompt.exec_() == QMessageBox.Yes:
+            self._restart_app()
+
+    def _restart_app(self):
+        app = QApplication.instance()
+        if not app:
+            return
+        if getattr(sys, "frozen", False):
+            QProcess.startDetached(sys.executable, sys.argv[1:])
+        else:
+            QProcess.startDetached(sys.executable, sys.argv)
+        app.quit()
 
     def load_data(self):
         rows = self.dao.list_accounts(active_only=self.active_only.isChecked())
