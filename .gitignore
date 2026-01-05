@@ -1,3 +1,6 @@
 build/
 dist/
 .venv/
+HRMS_PYTHON.code-workspace
+__pycache__/HRMS.cpython-313.pyc
+ui/__pycache__/crud_base.cpython-313.pyc
