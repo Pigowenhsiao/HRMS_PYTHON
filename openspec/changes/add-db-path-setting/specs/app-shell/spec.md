@@ -32,6 +32,13 @@ The system SHALL copy only authority account data to a newly created database du
 - **WHEN** a new database is created from the create-database action
 - **THEN** only authority accounts and permissions are copied; other tables are empty
 
+### Requirement: Status Bar Database Path
+The system SHALL display the active database path and filename in the status bar.
+
+#### Scenario: Status bar shows database path
+- **WHEN** the main screen is shown
+- **THEN** the status bar includes the database path
+
 ### Requirement: Concurrent Write Mitigation
 The system SHALL configure SQLite connections with a busy timeout and attempt WAL journal mode to reduce write contention across multiple users.
 
